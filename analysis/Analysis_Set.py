@@ -16,25 +16,39 @@ class Analysis_Set:
 	# libraries_to_compare: list of identifiers for the library that you want to compare the specificity against
 	#
 	# Returns: Nx2 matrix, 1st column is sequence, 2nd column is specificity score
-	def get_specificity(self, libraries_of_interest_name, libraries_to_compare_names):
+	def get_specificity(self, library_of_interest_name, libraries_to_compare_names):
 
 		specificity_dict={}
-		library_of_interest = self.sequence_libraries[libraries_of_interest_name]
+		library_of_interest = self.sequence_libraries[library_of_interest_name]
+		library_of_interest = library_of_interest.get_sequence_counts()
+
+		libraries_to_compare = []
+		libraries_to_compare_total_counts = []
+
+		for library_to_compare_name in libraries_to_compare_names:
+			library_to_compare = self.sequence_libraries[library_to_compare_name]
+			library_to_compare = library_to_compare.get_sequence_counts()
+			libraries_to_compare.append(library_to_compare)
+			libraries_to_compare_total_counts = sum(library_to_compare.values())
+
+		library_of_interest_total_count = sum(library_of_interest.values())
+
 		num_comparing_libraries = len(libraries_to_compare_names)
+
 		for key in library_of_interest:
-			comparing_libraries_sum = 0
-			library_of_interest = library_of_interest.get_sequence_counts()
-			for libraries_compare_index in len(libraries_to_compare_names):
-				compare_library_name = libraries_to_compare_names[libraries_compare_index]
-				comparing_library = self.sequence_libraries[compare_library_name]
-				comparing_library = comparing_library.get_sequence_counts()
-				comparing_libraries_sum += comparing_library[key]/sum(comparing_library.values())
-			library_of_interest_counts = library_of_interest[key]/sum(library_of_interest.values())
-			comparing_libraries_sum += libraries_of_interest_counts
-			sequence_specificity = library_of_interest_counts/(comparing_libraries_sum*num_comparing_libraries)
+
+			comparing_libraries_presence = 0
+
+			for library_to_compare_index in range(len(libraries_to_compare)):
+				library_to_compare = libraries_to_compare[library_to_compare_index]
+				comparing_libraries_presence += library_to_compare[key]/libraries_to_compare_total_counts[library_to_compare_index]
+
+			library_of_interest_presence = library_of_interest[key]/library_of_interest_total_count
+			comparing_libraries_presence += library_of_interest_presence
+			sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)
 			specificity_dict[key] = sequence_specificity
 
-		for libraries_compare_index in len(libraries_to_compare_names):
+		for libraries_compare_index in range(len(libraries_to_compare_names)):
 			compare_library_name = libraries_to_compare_names[libraries_compare_index]
 			comparing_library = self.sequence_libraries[compare_library_name]
 			comparing_library = comparing_library.get_sequence_counts()
@@ -42,8 +56,7 @@ class Analysis_Set:
 				if key not in specificity_dict:
 					specificity_dict[key] = 0
 
-
-
+		return specificity_dict
 
 	def get_enrichment(self, libraries_of_interest, libraries_to_compare):
 

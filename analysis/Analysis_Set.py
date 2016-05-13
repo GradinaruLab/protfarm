@@ -1,4 +1,4 @@
-import Sequence_Library
+from Sequence_Library import Sequence_Library
 
 class Analysis_Set:
 
@@ -6,9 +6,9 @@ class Analysis_Set:
 
 		self.sequence_libraries = {}
 
-	def add_library(self, file, name):
+	def add_library(self, filename, name):
 
-		sequence_library = Sequence_Library(file)
+		sequence_library = Sequence_Library(filename)
 		self.sequence_libraries[name] = sequence_library
 
 

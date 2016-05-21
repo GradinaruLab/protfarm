@@ -53,13 +53,30 @@ class Analysis_Set:
 		for libraries_compare_index in range(len(libraries_to_compare_names)):
 			compare_library_name = libraries_to_compare_names[libraries_compare_index]
 			comparing_library = self.sequence_libraries[compare_library_name]
-			comparing_library = comparing_library.get_sequence_counts()
+			comparing_library = comparing_library.get_sequence_counts(by_amino_acid = by_amino_acid, count_threshold = count_threshold)
 			for key in comparing_library:
 				if key not in specificity_dict:
 					specificity_dict[key] = 0
 
 		return specificity_dict
 
-	def get_enrichment(self, libraries_of_interest, libraries_to_compare):
+	def get_enrichment(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10):
 
-		return 0
+		library_of_interest = self.sequence_libraries[library_of_interest_name]
+		library_of_interest_total_count = library_of_interest.get_total_count()
+		library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
+		starting_library = self.sequence_libraries[starting_library_name]
+		starting_library_total_count = starting_library.get_total_count()
+		starting_library = starting_library.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
+
+		enrichment_dict = {}
+
+		for sequence in starting_library:
+
+			if sequence not in library_of_interest:
+				enrichment_dict[sequence] = 0.0
+			else:
+				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
+				enrichment_dict[sequence] = fold_enrichment
+
+		return enrichment_dict

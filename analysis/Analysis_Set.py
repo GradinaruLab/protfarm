@@ -1,4 +1,4 @@
-import Sequence_Library
+from Sequence_Library import Sequence_Library
 
 class Analysis_Set:
 

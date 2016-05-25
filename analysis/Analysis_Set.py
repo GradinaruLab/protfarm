@@ -1,4 +1,6 @@
 from Sequence_Library import Sequence_Library
+import csv
+import DNA as DNA
 
 class Analysis_Set:
 
@@ -80,3 +82,66 @@ class Analysis_Set:
 				enrichment_dict[sequence] = fold_enrichment
 
 		return enrichment_dict
+
+	def print_to_file(self, filename, starting_libary_name = '2_SV', by_amino_acid = False, count_threshold = 0):
+
+		num_sequence_libraries = len(self.sequence_libraries)
+
+		output_file = open(filename, 'w')
+
+		writer = csv.writer(output_file)
+
+		cumulative_counts = {}
+		cumulative_enrichments = {}
+
+		library_index = 0
+
+		header_row = ['Sequence']
+		if not by_amino_acid:
+			header_row.append('Amino Acid')
+
+		for library_name, library in self.sequence_libraries.iteritems():
+
+			header_row.append(library_name)
+			header_row.append(library_name + ' enrichment')
+
+			fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0)
+			library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
+			
+			for sequence, sequence_count in library_counts.iteritems():
+
+				if sequence not in cumulative_counts:
+					cumulative_counts[sequence] = [0] * num_sequence_libraries
+					cumulative_enrichments[sequence] = [0] * num_sequence_libraries
+
+				if sequence in fold_enrichments:
+					cumulative_enrichments[sequence][library_index] = fold_enrichments[sequence]
+
+				cumulative_counts[sequence][library_index] = sequence_count
+
+			library_index += 1
+
+		writer.writerow(header_row)
+
+		for sequence, sequence_counts in sorted(cumulative_counts.items(), key=lambda kv: sum(kv[1]), reverse=True):
+
+			sequence_row = [sequence]
+
+			if not by_amino_acid:
+				sequence_row.append(DNA.translate_dna_single(sequence))
+
+			if sum(sequence_counts) < count_threshold:
+				continue
+
+			library_index = 0
+
+			fold_enrichments = cumulative_enrichments[sequence]
+
+			for sequence_count in sequence_counts:
+				sequence_row.append(sequence_count)
+				sequence_row.append(fold_enrichments[library_index])
+				library_index += 1
+
+			writer.writerow(sequence_row)
+
+		output_file.close()

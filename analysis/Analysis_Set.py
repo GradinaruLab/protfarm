@@ -62,7 +62,7 @@ class Analysis_Set:
 
 		return specificity_dict
 
-	def get_enrichment(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10):
+	def get_enrichment(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=False):
 
 		library_of_interest = self.sequence_libraries[library_of_interest_name]
 		library_of_interest_total_count = library_of_interest.get_total_count()

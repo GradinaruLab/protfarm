@@ -1,8 +1,11 @@
+import Database as db
 
 class Alignment(object):
 
     def __init__(self, method, parameters, library_templates, id = 0):
-        self_.method = method
+        self._method = method
+        self._parameters = parameters
+        self._library_templates = library_templates
 
         if id == 0:
             db.add_alignment(self)

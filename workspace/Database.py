@@ -1,5 +1,5 @@
 import Library
-from Alignment import Alignment
+import Alignment
 from Template import Template
 import json
 import os
@@ -140,7 +140,8 @@ def add_template(new_template):
     template_db["next_template_id"] = next_template_id + 1
 
     template_db["templates"][next_template_id] = {}
-    template_db["templates"][next_template_id]["sequence"] = new_template.sequence
+    template_db["templates"][next_template_id]["sequence"] = \
+        new_template.sequence
 
     update_templates()
 
@@ -151,7 +152,42 @@ def get_template_object(template_id, template):
     return template_object
 
 def get_alignments():
-    pass
+
+    alignment_objects = []
+
+    for alignment_id, alignment in alignment_db["alignments"].items():
+        alignment_object = get_alignment_object(alignment_id, alignment)
+        alignment_objects.append(alignment_object)
+
+    return alignment_objects
+
+def add_alignment(new_alignment):
+
+    global alignment_db
+
+    next_alignment_id = alignment_db["next_alignment_id"]
+
+    alignment_db["next_alignment_id"] = next_alignment_id + 1
+
+    alignment_db["alignments"][next_alignment_id] = {}
+    alignment_db["alignments"][next_alignment_id]["method"] = \
+        new_alignment.method
+    alignment_db["alignments"][next_alignment_id]["parameters"] = \
+        new_alignment.parameters
+    alignment_db["alignments"][next_alignment_id]["library_templates"] = \
+        new_alignment.library_templates
+
+    update_alignments()
+
+    new_alignment._id = next_alignment_id
+
+def get_alignment_object(alignment_id, alignment):
+
+    alignment_object = Alignment.Alignment(alignment["method"], \
+        alignment["parameters"], alignment["library_templates"], \
+        alignment_id)
+
+    return alignment_object
 
 def dump_database():
 

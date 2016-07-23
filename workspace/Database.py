@@ -67,13 +67,21 @@ def get_libraries():
 
     return library_objects
 
-def get_library(fastq_file):
+def get_associated_library(fastq_file):
 
     for library_id, library in library_db["libraries"].items():
         if fastq_file in library["fastq_files"]:
             return get_library_object(library_id, library)
 
     raise Exception('FASTQ file doesn\'t exist in any library!')
+
+def get_library(name):
+
+    for library_id, library in library_db["libraries"].items():
+        if name == library["name"]:
+            return get_library_object(library_id, library)
+
+    raise Exception('No library found with name \'' + name + '\'')
 
 def add_library(new_library):
 

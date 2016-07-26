@@ -6,11 +6,16 @@ class Alignment(object):
         self._method = method
         self._parameters = parameters
         self._library_templates = library_templates
+        self._statistics = {}
 
         if id == 0:
             db.add_alignment(self)
         else:
             self._id = id
+
+    def add_statistics(self, library, statistics):
+        self._statistics[library.id] = statistics
+        db.update_alignment(self);
 
     @property
     def name(self):
@@ -27,3 +32,23 @@ class Alignment(object):
     @property
     def library_templates(self):
         return self._library_templates
+
+    @property
+    def statistics(self):
+        return self._statistics
+
+    @property
+    def id(self):
+        return self._id
+    
+    @method.setter
+    def method(self, new_method):
+        raise Exception('You can\'t do that!')
+
+    @parameters.setter
+    def parameters(self, new_parameters):
+        raise Exception('You can\'t do that!')
+
+    @library_templates.setter
+    def library_templates(self, new_library_templates):
+        raise Exception('You can\'t do that!')

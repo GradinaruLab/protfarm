@@ -1,6 +1,6 @@
 import Library
 import Alignment
-from Template import Template
+import Template
 import json
 import os
 
@@ -29,7 +29,6 @@ def load_database(new_path):
         template_db = json.load(templates_file)
         alignment_db = json.load(alignments_file)
 
-        print ('Loaded database')
     except IOError:
         initialize_empty_database()
         return
@@ -82,6 +81,13 @@ def get_library(name):
             return get_library_object(library_id, library)
 
     raise Exception('No library found with name \'' + name + '\'')
+
+def get_library_by_id(id):
+
+    if id not in library_db["libraries"].keys():
+        raise Exception('No library with id \'' + str(id) + '\'')
+
+    return get_library_object(id, library_db["libraries"][id])
 
 def add_library(new_library):
 
@@ -136,6 +142,13 @@ def get_templates():
 
     return template_objects
 
+def get_template_by_id(id):
+
+    if id not in template_db["templates"].keys():
+        raise Exception('No template with id \'' + str(id) + '\'')
+
+    return get_template_object(id, template_db["templates"][id])
+
 def add_template(new_template):
 
     global template_db
@@ -156,6 +169,7 @@ def add_template(new_template):
     new_template._id = next_template_id
 
 def get_template_object(template_id, template):
+
     template_object = Template.Template(template["sequence"], template_id)
     return template_object
 
@@ -196,6 +210,21 @@ def get_alignment_object(alignment_id, alignment):
         alignment_id)
 
     return alignment_object
+
+def update_alignment(alignment):
+
+    if alignment.id not in alignment_db["alignments"].keys():
+        add_alignment(alignment)
+    else:
+        alignment_db["alignments"][alignment.id]["method"] = alignment.method
+        alignment_db["alignments"][alignment.id]["parameters"] = \
+            alignment.parameters
+        alignment_db["alignments"][alignment.id]["library_templates"] = \
+            alignment.library_templates
+        alignment_db["alignments"][alignment.id]["statistics"] = \
+            alignment.statistics
+
+        update_alignments()
 
 def dump_database():
 

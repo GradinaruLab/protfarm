@@ -84,10 +84,10 @@ def get_library(name):
 
 def get_library_by_id(id):
 
-    if id not in library_db["libraries"].keys():
+    if str(id) not in library_db["libraries"].keys():
         raise Exception('No library with id \'' + str(id) + '\'')
 
-    return get_library_object(id, library_db["libraries"][id])
+    return get_library_object(id, library_db["libraries"][str(id)])
 
 def add_library(new_library):
 
@@ -144,10 +144,10 @@ def get_templates():
 
 def get_template_by_id(id):
 
-    if id not in template_db["templates"].keys():
+    if str(id) not in template_db["templates"].keys():
         raise Exception('No template with id \'' + str(id) + '\'')
 
-    return get_template_object(id, template_db["templates"][id])
+    return get_template_object(id, template_db["templates"][str(id)])
 
 def add_template(new_template):
 

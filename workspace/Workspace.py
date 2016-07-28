@@ -17,7 +17,10 @@ def get_fastq_files():
 
 def write_sequence_file(library, alignment, sequence_uuids):
 
-    file_name = workspace_path + "/" + aligned_subdirectory + "/" + \
+    aligned_directory = get_full_path(aligned_subdirectory)
+    mkdir_if_not_exists(aligned_directory)
+
+    file_name = aligned_directory + "/" + \
         str(library.id) + "_" + str(alignment.id) + ".csv"
 
     csv_wrapper.write_csv_file(file_name, ['Sequence', 'UUID'], sequence_uuids)

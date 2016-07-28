@@ -141,7 +141,11 @@ def get_templates():
         template_objects.append(template_object)
 
     return template_objects
-
+def get_template_by_sequence(sequence):
+    for template_id, template in template_db['templates'].items():
+        if sequence == template["sequence"]:
+            return get_template_object(template_id, template)
+    return None
 def get_template_by_id(id):
 
     if str(id) not in template_db["templates"].keys():

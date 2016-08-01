@@ -4,6 +4,8 @@ import Template
 import json
 import os
 
+from utils import utils
+
 def load_database(new_path):
 
     global path
@@ -95,14 +97,16 @@ def add_library(new_library):
 
     for library_id, library in library_db["libraries"].items():
         if new_library.name == library["name"]:
+            print new_library.name
+            print library["name"]
             raise Exception('Name already exists')
 
     next_library_id = library_db["next_library_id"]
     library_db["next_library_id"] = next_library_id + 1
 
-    library_db["libraries"][next_library_id] = {}
-    library_db["libraries"][next_library_id]["name"] = new_library.name
-    library_db["libraries"][next_library_id]["fastq_files"] = []
+    library_db["libraries"][str(next_library_id)] = {}
+    library_db["libraries"][str(next_library_id)]["name"] = new_library.name
+    library_db["libraries"][str(next_library_id)]["fastq_files"] = []
 
     update_libraries()
 
@@ -110,25 +114,25 @@ def add_library(new_library):
 
 def remove_library(library):
 
-    if library.id not in library_db["libraries"].keys():
+    if str(library.id) not in library_db["libraries"].keys():
         raise Exception('Library doesn\'t exist in database!')
 
-    del library_db["libraries"][library.id]
+    del library_db["libraries"][str(library.id)]
 
     update_libraries()
 
 def update_library(library):
 
-    if library.id not in library_db["libraries"].keys():
+    if str(library.id) not in library_db["libraries"].keys():
         add_library(library)
     else:
-        library_db["libraries"][library.id]["name"] = library.name
-        library_db["libraries"][library.id]["fastq_files"] = \
+        library_db["libraries"][str(library.id)]["name"] = library.name
+        library_db["libraries"][str(library.id)]["fastq_files"] = \
             library.fastq_files
         update_libraries()
 
 def get_library_object(library_id, library):
-    library_object = Library.Library(library["name"], library_id)
+    library_object = Library.Library(library["name"], int(library_id))
     library_object._fastq_files = library["fastq_files"]
     return library_object
 
@@ -175,8 +179,8 @@ def add_template(new_template):
     next_template_id = template_db["next_template_id"]
     template_db["next_template_id"] = next_template_id + 1
 
-    template_db["templates"][next_template_id] = {}
-    template_db["templates"][next_template_id]["sequence"] = \
+    template_db["templates"][str(next_template_id)] = {}
+    template_db["templates"][str(next_template_id)]["sequence"] = \
         new_template.sequence
 
     update_templates()
@@ -185,7 +189,7 @@ def add_template(new_template):
 
 def get_template_object(template_id, template):
 
-    template_object = Template.Template(template["sequence"], template_id)
+    template_object = Template.Template(template["sequence"], int(template_id))
     return template_object
 
 def get_alignments():
@@ -206,12 +210,12 @@ def add_alignment(new_alignment):
 
     alignment_db["next_alignment_id"] = next_alignment_id + 1
 
-    alignment_db["alignments"][next_alignment_id] = {}
-    alignment_db["alignments"][next_alignment_id]["method"] = \
+    alignment_db["alignments"][str(next_alignment_id)] = {}
+    alignment_db["alignments"][str(next_alignment_id)]["method"] = \
         new_alignment.method
-    alignment_db["alignments"][next_alignment_id]["parameters"] = \
+    alignment_db["alignments"][str(next_alignment_id)]["parameters"] = \
         new_alignment.parameters
-    alignment_db["alignments"][next_alignment_id]["library_templates"] = \
+    alignment_db["alignments"][str(next_alignment_id)]["library_templates"] = \
         new_alignment.library_templates
 
     update_alignments()
@@ -220,23 +224,30 @@ def add_alignment(new_alignment):
 
 def get_alignment_object(alignment_id, alignment):
 
+    library_templates = \
+        utils.convert_string_keys_to_ints(alignment["library_templates"])
+
+    statistics = \
+        utils.convert_string_keys_to_ints(alignment["statistics"])
+
     alignment_object = Alignment.Alignment(alignment["method"], \
-        alignment["parameters"], alignment["library_templates"], \
-        alignment_id)
+        alignment["parameters"], library_templates, statistics, \
+        int(alignment_id))
 
     return alignment_object
 
 def update_alignment(alignment):
 
-    if alignment.id not in alignment_db["alignments"].keys():
+    if str(alignment.id) not in alignment_db["alignments"].keys():
         add_alignment(alignment)
     else:
-        alignment_db["alignments"][alignment.id]["method"] = alignment.method
-        alignment_db["alignments"][alignment.id]["parameters"] = \
+        alignment_db["alignments"][str(alignment.id)]["method"] = \
+            alignment.method
+        alignment_db["alignments"][str(alignment.id)]["parameters"] = \
             alignment.parameters
-        alignment_db["alignments"][alignment.id]["library_templates"] = \
+        alignment_db["alignments"][str(alignment.id)]["library_templates"] = \
             alignment.library_templates
-        alignment_db["alignments"][alignment.id]["statistics"] = \
+        alignment_db["alignments"][str(alignment.id)]["statistics"] = \
             alignment.statistics
 
         update_alignments()

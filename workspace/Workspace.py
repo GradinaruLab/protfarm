@@ -1,9 +1,9 @@
 import glob
 import os
 import json
+import importlib
 
 import Database as db
-
 from fileio import csv_wrapper
 
 def get_fastq_files():
@@ -17,7 +17,14 @@ def get_fastq_files():
 
     return fastq_files
 
-def write_sequence_file(library, alignment, sequence_uuids):
+def write_sequence_file(library, alignment, sequence_uuid_counts):
+
+    file_name = get_alignment_file_name(library, alignment)
+
+    csv_wrapper.write_csv_file(file_name, ['Sequence', 'UUID', 'Count'], \
+        sequence_uuid_counts)
+
+def get_alignment_file_name(library, alignment):
 
     aligned_directory = get_full_path(aligned_subdirectory)
     mkdir_if_not_exists(aligned_directory)
@@ -25,10 +32,29 @@ def write_sequence_file(library, alignment, sequence_uuids):
     file_name = aligned_directory + "/" + \
         str(library.id) + "_" + str(alignment.id) + ".csv"
 
-    csv_wrapper.write_csv_file(file_name, ['Sequence', 'UUID'], sequence_uuids)
+    return file_name
 
-def get_alignment_instances():
-    pass
+def alignment_exists(library, alignment):
+
+    alignment_file_name = get_alignment_file_name(library, alignment)
+
+    if os.path.isfile(alignment_file_name) and \
+        library.id in alignment.statistics:
+        return True
+
+    return False
+
+def remove_library_alignments(library):
+
+    alignments = db.get_alignments()
+
+    for alignment in alignments:
+        file_name = get_alignment_file_name(library, alignment)
+        alignment.remove_library(library)
+    try:
+        os.remove(file_name)
+    except OSError:
+        pass
 
 def set_workspace_path(new_workspace_path):
     """Set the current workspace path. This is where the db and all other
@@ -60,6 +86,22 @@ def mkdir_if_not_exists(dir):
 
     if not os.path.isdir(dir):
         os.mkdir(dir)
+
+def align_all():
+
+    from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
+
+    alignments = db.get_alignments()
+
+    for alignment in alignments:
+
+        if alignment.method == Perfect_Match_Aligner.__name__:
+            aligner = Perfect_Match_Aligner()
+        else:
+            raise Exception('Invalid alignment method, \'' + alignment.method \
+                + '\', detected.')
+
+        aligner.align(alignment)
 
 # Initialize globals
 raw_data_subdirectory = "raw_data"

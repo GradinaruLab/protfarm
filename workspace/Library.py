@@ -1,5 +1,6 @@
 import os
 import Database as db
+from workspace import Workspace as ws
 
 class Library(object):
 
@@ -12,13 +13,22 @@ class Library(object):
         else:
             self._id = id
 
-    def append_file(self, file_name):
+    def add_file(self, file_name):
+
+        try:
+            existing_file_index = self._fastq_files.index(file_name)
+            return
+        except:
+            pass
+
         self._fastq_files.append(file_name)
         db.update_library(self)
 
-    def extend_files(self, file_names):
-        self._fastq_files.extend(file_names)
+    def remove_file(self, file_name):
+        file_to_remove_index = self._fastq_files.index(file_name)
+        del self._fastq_files[file_to_remove_index]
         db.update_library(self)
+        ws.remove_library_alignments(self)
 
     @property
     def fastq_files(self):
@@ -27,8 +37,18 @@ class Library(object):
 
     @fastq_files.setter
     def fastq_files(self, new_fastq_files):
-        self._fastq_files = new_fastq_files
-        db.update_library(self)
+
+        for new_fastq_file in new_fastq_files:
+            self.add_file(new_fastq_file)
+
+        files_to_remove = []
+
+        for existing_fastq_file in self._fastq_files:
+            if existing_fastq_file not in new_fastq_files:
+                files_to_remove.append(existing_fastq_file)
+
+        for existing_fastq_file in files_to_remove:
+            self.remove_file(existing_fastq_file)
 
     @property
     def name(self):

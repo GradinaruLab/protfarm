@@ -11,7 +11,9 @@ def get_fastq_files():
     raw_data_directory = get_full_path(raw_data_subdirectory)
     mkdir_if_not_exists(raw_data_directory)
 
-    fastq_files = glob.glob(raw_data_directory + "/*.fastq")
+    # fastq_files = glob.glob(raw_data_directory + "/*.fastq")
+    fastq_files = [file for file in os.listdir(raw_data_directory) \
+        if file.endswith('.fastq')]
 
     return fastq_files
 

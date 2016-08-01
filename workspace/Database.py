@@ -132,6 +132,15 @@ def get_library_object(library_id, library):
     library_object._fastq_files = library["fastq_files"]
     return library_object
 
+def get_template_seed():
+    return template_db["next_template_id"]
+
+def get_library_seed():
+    return library_db["next_library_id"]
+
+def get_alignment_seed():
+    return alignment_db["next_alignment_id"]
+
 def get_templates():
 
     template_objects = []
@@ -141,11 +150,13 @@ def get_templates():
         template_objects.append(template_object)
 
     return template_objects
+
 def get_template_by_sequence(sequence):
     for template_id, template in template_db['templates'].items():
         if sequence == template["sequence"]:
             return get_template_object(template_id, template)
     return None
+
 def get_template_by_id(id):
 
     if str(id) not in template_db["templates"].keys():

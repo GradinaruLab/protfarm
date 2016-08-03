@@ -97,8 +97,6 @@ def add_library(new_library):
 
     for library_id, library in library_db["libraries"].items():
         if new_library.name == library["name"]:
-            print new_library.name
-            print library["name"]
             raise Exception('Name already exists')
 
     next_library_id = library_db["next_library_id"]

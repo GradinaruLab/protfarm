@@ -1,6 +1,6 @@
 from Sequence_Library import Sequence_Library
 import csv
-import DNA as DNA
+from utils import DNA
 
 class Analysis_Set:
 
@@ -8,11 +8,10 @@ class Analysis_Set:
 
 		self.sequence_libraries = {}
 
-	def add_library(self, filename, name):
+	def add_library(self, library):
 
-		sequence_library = Sequence_Library(filename)
-		self.sequence_libraries[name] = sequence_library
-
+		sequence_library = Sequence_Library(library)
+		self.sequence_libraries[library.name] = sequence_library
 
 	# libraries_of_interest: list of identifiers for the library that you want the specificity of
 	# libraries_to_compare: list of identifiers for the library that you want to compare the specificity against

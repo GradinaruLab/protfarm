@@ -2,8 +2,8 @@ import Database as db
 
 class Alignment(object):
 
-    def __init__(self, method, parameters, library_templates, statistics, \
-        id = 0):
+    def __init__(self, method, parameters, library_templates, \
+        statistics = {}, id = 0):
 
         self._method = method
         self._parameters = parameters

@@ -1,6 +1,6 @@
 import os
 import Database as db
-from workspace import Workspace as ws
+import Workspace as ws
 
 class Library(object):
 

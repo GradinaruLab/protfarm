@@ -207,6 +207,8 @@ def add_alignment(new_alignment):
         new_alignment.parameters
     alignment_db["alignments"][str(next_alignment_id)]["library_templates"] = \
         new_alignment.library_templates
+    alignment_db["alignments"][str(next_alignment_id)]["statistics"] = \
+        new_alignment.statistics
 
     update_alignments()
 

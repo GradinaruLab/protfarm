@@ -92,14 +92,18 @@ def align_all():
     from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
 
     alignments = db.get_alignments()
-
+    for alignment in alignments:
+        if alignment.method not in [Perfect_Match_Aligner.__name__]:
+            raise Exception('Invalid alignment method, \'' + alignment.method \
+                + '\', detected.')
     for alignment in alignments:
 
         if alignment.method == Perfect_Match_Aligner.__name__:
             aligner = Perfect_Match_Aligner()
+        # elif alignment.method == Bowtie_Aligner.__name__:
+            aligner = Bowtie_Aligner()
         else:
-            raise Exception('Invalid alignment method, \'' + alignment.method \
-                + '\', detected.')
+            continue
 
         aligner.align(alignment)
 

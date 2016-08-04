@@ -107,6 +107,18 @@ def align_all():
 
         aligner.align(alignment)
 
+def set_active_alignment(alignment):
+    global active_alignment
+    
+    active_alignment = alignment
+
+def get_active_alignment():
+    if active_alignment is None:
+        raise Exception('No active alignment specified!')
+
+    return active_alignment
+
 # Initialize globals
 raw_data_subdirectory = "raw_data"
 aligned_subdirectory = ".aligned"
+active_alignment = None

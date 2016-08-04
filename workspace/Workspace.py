@@ -90,6 +90,7 @@ def mkdir_if_not_exists(dir):
 def align_all():
 
     from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
+    from sequencing.Bowtie_Aligner import Bowtie_Aligner
 
     alignments = db.get_alignments()
     for alignment in alignments:
@@ -100,7 +101,7 @@ def align_all():
 
         if alignment.method == Perfect_Match_Aligner.__name__:
             aligner = Perfect_Match_Aligner()
-        # elif alignment.method == Bowtie_Aligner.__name__:
+        elif alignment.method == Bowtie_Aligner.__name__:
             aligner = Bowtie_Aligner()
         else:
             continue

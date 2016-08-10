@@ -91,22 +91,43 @@ def align_all():
 
     from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
     from sequencing.Bowtie_Aligner import Bowtie_Aligner
+    from sequencing.Aligner import Aligner
 
     alignments = db.get_alignments()
+
+    num_alignments = 0
+
     for alignment in alignments:
         if alignment.method not in [Perfect_Match_Aligner.__name__]:
             raise Exception('Invalid alignment method, \'' + alignment.method \
                 + '\', detected.')
+
+        for library_id, template_id in alignment.library_templates.items():
+
+            library = db.get_library_by_id(library_id)
+
+            if not ws.alignment_exists(library, alignment):
+                num_alignments += 1
+
     for alignment in alignments:
 
-        if alignment.method == Perfect_Match_Aligner.__name__:
-            aligner = Perfect_Match_Aligner()
-        elif alignment.method == Bowtie_Aligner.__name__:
-            aligner = Bowtie_Aligner()
-        else:
-            continue
+        Aligner.validate_alignment(alignment)
 
-        aligner.align(alignment)
+        for library_id, template_id in alignment.library_templates.items():
+
+            library = db.get_library_by_id(library_id)
+
+            if ws.alignment_exists(library, alignment):
+                continue
+
+            if alignment.method == Perfect_Match_Aligner.__name__:
+                aligner = Perfect_Match_Aligner()
+            elif alignment.method == Bowtie_Aligner.__name__:
+                aligner = Bowtie_Aligner()
+            else:
+                continue
+
+            aligner.align(alignment, library, callback)
 
 def set_active_alignment(alignment):
     global active_alignment

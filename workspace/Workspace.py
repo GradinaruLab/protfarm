@@ -87,11 +87,18 @@ def mkdir_if_not_exists(dir):
     if not os.path.isdir(dir):
         os.mkdir(dir)
 
-def align_all():
+def align_all(callback):
 
+    callback('Hi')
+    
     from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
     from sequencing.Bowtie_Aligner import Bowtie_Aligner
     from sequencing.Aligner import Aligner
+
+    global alignment_progress_string
+    global alignment_progress_callback
+
+    alignment_progress_callback = callback
 
     alignments = db.get_alignments()
 
@@ -106,8 +113,10 @@ def align_all():
 
             library = db.get_library_by_id(library_id)
 
-            if not ws.alignment_exists(library, alignment):
+            if not alignment_exists(library, alignment):
                 num_alignments += 1
+
+    alignment_number = 1
 
     for alignment in alignments:
 
@@ -117,8 +126,16 @@ def align_all():
 
             library = db.get_library_by_id(library_id)
 
-            if ws.alignment_exists(library, alignment):
+            if alignment_exists(library, alignment):
                 continue
+
+            alignment_progress_string = 'Performing alignment ' + \
+                str(alignment_number) + '/' + str(num_alignments) + ': \'' \
+                + library.name + '\' with \'' + alignment.method + '\''
+
+            callback(alignment_progress_string)
+
+            alignment_number += 1
 
             if alignment.method == Perfect_Match_Aligner.__name__:
                 aligner = Perfect_Match_Aligner()
@@ -127,7 +144,16 @@ def align_all():
             else:
                 continue
 
-            aligner.align(alignment, library, callback)
+            aligner.align(alignment, library, \
+                update_library_alignment_progress)
+
+def update_library_alignment_progress(library_progress_string):
+
+    progress_string = alignment_progress_string + '\n' + \
+        library_progress_string
+
+    alignment_progress_callback(progress_string)
+
 
 def set_active_alignment(alignment):
     global active_alignment
@@ -144,3 +170,4 @@ def get_active_alignment():
 raw_data_subdirectory = "raw_data"
 aligned_subdirectory = ".aligned"
 active_alignment = None
+alignment_progress_string = ""

@@ -87,8 +87,8 @@ def mkdir_if_not_exists(dir):
     if not os.path.isdir(dir):
         os.mkdir(dir)
 
-def align_all():
-
+def align_all(callback):
+    
     from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
     from sequencing.Bowtie_Aligner import Bowtie_Aligner
 
@@ -97,16 +97,21 @@ def align_all():
         if alignment.method not in [Perfect_Match_Aligner.__name__]:
             raise Exception('Invalid alignment method, \'' + alignment.method \
                 + '\', detected.')
-    for alignment in alignments:
-
+    progress = '\n0/'+str(len(alignments))+' alignments done' 
+    for i, alignment in enumerate(alignments):
+        progress = 'Alignment: '+alignment.method + progress
+        callback(progress)
         if alignment.method == Perfect_Match_Aligner.__name__:
             aligner = Perfect_Match_Aligner()
         elif alignment.method == Bowtie_Aligner.__name__:
             aligner = Bowtie_Aligner()
         else:
             continue
-
         aligner.align(alignment)
+
+        progress = '\n' + str(i+1) + '/' + str(len(alignments)) +\
+            ' alignments done'
+    callback('Alignment finished')
 
 def set_active_alignment(alignment):
     global active_alignment

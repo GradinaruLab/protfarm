@@ -76,6 +76,13 @@ def set_workspace_path(new_workspace_path):
 
     db.load_database(workspace_path)
 
+    global active_alignment
+
+    try:
+        active_alignment = db.get_active_alignment()
+    except:
+        active_alignment = None
+
 def get_raw_data_path(child_path):
     return workspace_path + "/" + raw_data_subdirectory + "/" + child_path
 
@@ -88,8 +95,6 @@ def mkdir_if_not_exists(dir):
         os.mkdir(dir)
 
 def align_all(callback):
-
-    callback('Hi')
     
     from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
     from sequencing.Bowtie_Aligner import Bowtie_Aligner
@@ -154,13 +159,14 @@ def update_library_alignment_progress(library_progress_string):
 
     alignment_progress_callback(progress_string)
 
-
 def set_active_alignment(alignment):
     global active_alignment
     
     active_alignment = alignment
+    db.set_active_alignment(alignment)
 
 def get_active_alignment():
+
     if active_alignment is None:
         raise Exception('No active alignment specified!')
 
@@ -169,5 +175,6 @@ def get_active_alignment():
 # Initialize globals
 raw_data_subdirectory = "raw_data"
 aligned_subdirectory = ".aligned"
+export_subdirectory = "export"
 active_alignment = None
 alignment_progress_string = ""

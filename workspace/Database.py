@@ -55,6 +55,7 @@ def initialize_empty_database():
     template_db["templates"] = {}
     alignment_db["next_alignment_id"] = 1
     alignment_db["alignments"] = {}
+    alignment_db["active_alignment"] = 0
 
     dump_database()
 
@@ -200,6 +201,21 @@ def get_alignments():
 
     return alignment_objects
 
+def get_alignment(name):
+
+    for alignment in get_alignments():
+        if alignment.name == name:
+            return alignment
+
+    raise Exception('No alignment exists with name \'' + name + '\'')
+
+def get_alignment_by_id(id):
+
+    if str(id) not in alignment_db["alignments"].keys():
+        raise Exception('No alignment with id \'' + str(id) + '\'')
+
+    return get_alignment_object(id, alignment_db["alignments"][str(id)])
+
 def add_alignment(new_alignment):
 
     global alignment_db
@@ -251,6 +267,16 @@ def update_alignment(alignment):
             alignment.statistics
 
         update_alignments()
+
+def set_active_alignment(alignment):
+
+    alignment_db["active_alignment"] = alignment.id
+
+    update_alignments()
+
+def get_active_alignment():
+
+    return get_alignment_by_id(alignment_db["active_alignment"])
 
 def dump_database():
 

@@ -15,6 +15,8 @@ class Alignment(object):
         else:
             self._id = id
 
+        self._name = self._method + ' ' + str(id)
+
     def add_statistics(self, library, statistics):
         self._statistics[library.id] = statistics
         db.update_alignment(self)

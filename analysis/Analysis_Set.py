@@ -1,6 +1,7 @@
 from Sequence_Library import Sequence_Library
 import csv
 from utils import DNA
+import math
 
 class Analysis_Set:
 
@@ -71,14 +72,25 @@ class Analysis_Set:
 		starting_library = starting_library.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
 
 		enrichment_dict = {}
-
 		for sequence in starting_library:
 
 			if sequence not in library_of_interest:
 				enrichment_dict[sequence] = 0.0
+				#pass
 			else:
-				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
-				enrichment_dict[sequence] = fold_enrichment
+				#TODO: do this for now to avoid divide by 0 issues 
+				# if (library_of_interest[sequence] == 0):
+				# 	library_of_interest[sequence] = 1
+				# if (starting_library[sequence] == 0):
+				# 	library_of_interest[sequence] = 1
+
+				if (Log_Scale):
+					fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
+					enrichment_dict[sequence] = math.log10(fold_enrichment)
+
+				else:
+					fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
+					enrichment_dict[sequence] = fold_enrichment
 
 		return enrichment_dict
 

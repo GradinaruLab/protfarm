@@ -65,12 +65,12 @@ def set_workspace_path(new_workspace_path):
     workspace_path = new_workspace_path
 
     try:
-        os.mkdir(raw_data_subdirectory)
+        mkdir_if_not_exists(raw_data_subdirectory)
     except:
         pass
 
     try:
-        os.mkdir(aligned_subdirectory)
+        mkdir_if_not_exists(aligned_subdirectory)
     except:
         pass
 
@@ -92,7 +92,7 @@ def get_full_path(child_path):
 def mkdir_if_not_exists(dir):
 
     if not os.path.isdir(dir):
-        os.mkdir(dir)
+        os.makedirs(dir)
 
 def align_all(callback):
     

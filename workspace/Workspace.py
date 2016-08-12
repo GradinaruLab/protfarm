@@ -172,6 +172,18 @@ def get_active_alignment():
 
     return active_alignment
 
+def export_csv(filename, header, data):
+
+    export_directory = get_full_path(export_subdirectory)
+    mkdir_if_not_exists(export_directory)
+
+    if len(filename) < 4 or filename[-4:] != '.csv':
+        filename = filename + '.csv'
+
+    filename = export_directory + "/" + filename
+
+    csv_wrapper.write_csv_file(filename, header, data)
+
 def export_alignment_statistics():
 
     unique_fields = set()
@@ -209,12 +221,7 @@ def export_alignment_statistics():
 
             data.append(row)
 
-    export_directory = get_full_path(export_subdirectory)
-    mkdir_if_not_exists(export_directory)
-
-    file_name = export_directory + "/" + "alignment_statistics.csv"
-
-    csv_wrapper.write_csv_file(file_name, header, data)
+    export_csv('alignment_statistics', header, data)
 
 # Initialize globals
 raw_data_subdirectory = "raw_data"

@@ -2,6 +2,7 @@ from Sequence_Library import Sequence_Library
 import csv
 from utils import DNA
 import math
+from workspace import Workspace as ws
 
 class Analysis_Set:
 
@@ -22,6 +23,9 @@ class Analysis_Set:
 
 		specificity_dict={}
 		library_of_interest = self.sequence_libraries[library_of_interest_name]
+
+		print "Getting specificity of \'" + library_of_interest_name + "\'"
+
 		library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold)
 
 		libraries_to_compare = []
@@ -37,6 +41,9 @@ class Analysis_Set:
 
 		num_comparing_libraries = len(libraries_to_compare_names) + 1
 
+		print "Comparing to " + str(num_comparing_libraries) + " library(ies)"
+		print "Library of interest total count: " + str(library_of_interest_total_count)
+
 		for key in library_of_interest:
 
 			comparing_libraries_presence = 0
@@ -44,11 +51,16 @@ class Analysis_Set:
 			for library_to_compare_index in range(len(libraries_to_compare)):
 				library_to_compare = libraries_to_compare[library_to_compare_index]
 
+				library_presence = 0
 				if key in library_to_compare:
-					comparing_libraries_presence += library_to_compare[key]/libraries_to_compare_total_counts[library_to_compare_index]
+					library_presence = library_to_compare[key]/libraries_to_compare_total_counts[library_to_compare_index]
+					comparing_libraries_presence += library_presence
+
+				print "Presence of " + key + " in " + libraries_to_compare_names[library_to_compare_index] + ": " + str(library_presence)
 
 			library_of_interest_presence = 1.0*library_of_interest[key]/library_of_interest_total_count
 			comparing_libraries_presence += library_of_interest_presence
+
 			sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)
 			specificity_dict[key] = sequence_specificity
 
@@ -94,16 +106,15 @@ class Analysis_Set:
 
 		return enrichment_dict
 
-	def print_to_file(self, filename, starting_libary_name = '2_SV', by_amino_acid = False, count_threshold = 0):
+	def export_enrichment_specificity(self, filename, starting_libary_name, \
+		libraries_to_compare_names, by_amino_acid = False, \
+		count_threshold = 0):
 
 		num_sequence_libraries = len(self.sequence_libraries)
 
-		output_file = open(filename, 'w')
-
-		writer = csv.writer(output_file)
-
 		cumulative_counts = {}
 		cumulative_enrichments = {}
+		cumulative_specificities = {}
 
 		library_index = 0
 
@@ -115,8 +126,10 @@ class Analysis_Set:
 
 			header_row.append(library_name)
 			header_row.append(library_name + ' enrichment')
+			header_row.append(library_name + ' specificity')
 
 			fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0)
+			specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid, count_threshold = 0)
 			library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
 			
 			for sequence, sequence_count in library_counts.iteritems():
@@ -124,15 +137,19 @@ class Analysis_Set:
 				if sequence not in cumulative_counts:
 					cumulative_counts[sequence] = [0] * num_sequence_libraries
 					cumulative_enrichments[sequence] = [0] * num_sequence_libraries
+					cumulative_specificities[sequence] = [0] * num_sequence_libraries
 
 				if sequence in fold_enrichments:
 					cumulative_enrichments[sequence][library_index] = fold_enrichments[sequence]
+
+				if sequence in specificities:
+					cumulative_specificities[sequence][library_index] = specificities[sequence]
 
 				cumulative_counts[sequence][library_index] = sequence_count
 
 			library_index += 1
 
-		writer.writerow(header_row)
+		data = []
 
 		for sequence, sequence_counts in sorted(cumulative_counts.items(), key=lambda kv: sum(kv[1]), reverse=True):
 
@@ -147,12 +164,16 @@ class Analysis_Set:
 			library_index = 0
 
 			fold_enrichments = cumulative_enrichments[sequence]
+			specificities = cumulative_specificities[sequence]
 
 			for sequence_count in sequence_counts:
 				sequence_row.append(sequence_count)
 				sequence_row.append(fold_enrichments[library_index])
+				sequence_row.append(specificities[library_index])
 				library_index += 1
 
-			writer.writerow(sequence_row)
+			data.append(sequence_row)
 
-		output_file.close()
+		ws.export_csv(filename, header_row, data)
+
+		

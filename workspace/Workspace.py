@@ -172,6 +172,50 @@ def get_active_alignment():
 
     return active_alignment
 
+def export_alignment_statistics():
+
+    unique_fields = set()
+
+    # First, get all the headers we'll need
+    for alignment in db.get_alignments():
+
+        for library_id, statistics in alignment.statistics.iteritems():
+
+            for statistic_label, statistic in statistics.iteritems():
+                unique_fields.add(statistic_label)
+
+    statistic_labels = []
+
+    for statistic_label in unique_fields:
+        statistic_labels.append(statistic_label)
+
+    header = ['Alignment', 'Library']
+    header.extend(statistic_labels)
+
+    data = []
+
+    for alignment in db.get_alignments():
+
+        for library_id, statistics in alignment.statistics.iteritems():
+
+            row = [alignment.name, db.get_library_by_id(library_id).name]
+
+            for statistic_label in statistic_labels:
+
+                if statistic_label in statistics:
+                    row.append(statistics[statistic_label])
+                else:
+                    row.append('')
+
+            data.append(row)
+
+    export_directory = get_full_path(export_subdirectory)
+    mkdir_if_not_exists(export_directory)
+
+    file_name = export_directory + "/" + "alignment_statistics.csv"
+
+    csv_wrapper.write_csv_file(file_name, header, data)
+
 # Initialize globals
 raw_data_subdirectory = "raw_data"
 aligned_subdirectory = ".aligned"

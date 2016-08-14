@@ -6,6 +6,8 @@ from workspace import Workspace as ws
 
 class Analysis_Set:
 
+	zero_count_magic_number = 0.5
+
 	def __init__(self):
 
 		self.sequence_libraries = {}
@@ -101,12 +103,27 @@ class Analysis_Set:
 				# 	library_of_interest[sequence] = 1
 
 				if (Log_Scale):
+					if library_of_interest[sequence] == 0:
+						library_of_interest[sequence] = zero_count_magic_number
+						
 					fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
 					enrichment_dict[sequence] = math.log10(fold_enrichment)
 
 				else:
 					fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
 					enrichment_dict[sequence] = fold_enrichment
+
+		# For the sequences that don't exist in the starting library
+		for sequence in library_of_interest:
+			if sequence in starting_library:
+				continue
+
+			fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number / starting_library_total_count)
+
+			if Log_Scale:
+				enrichment_dict[sequence] = math.log10(fold_enrichment)
+			else:
+				enrichment_dict[sequence] = fold_enrichment
 
 		return enrichment_dict
 
@@ -179,5 +196,3 @@ class Analysis_Set:
 			data.append(sequence_row)
 
 		ws.export_csv(filename, header_row, data)
-
-		

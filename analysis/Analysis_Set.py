@@ -91,20 +91,20 @@ class Analysis_Set:
 
 		enrichment_dict = {}
 		for sequence in starting_library:
-			if (Log_Scale):
-				if library_of_interest[sequence] == 0:
-					library_of_interest[sequence] = zero_count_magic_number
-					
+
+			if sequence not in library_of_interest or library_of_interest[sequence] == 0:
+				library_of_interest[sequence] = zero_count_magic_number
+				
+			if (Log_Scale):					
 				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
 				enrichment_dict[sequence] = math.log10(fold_enrichment)
-
 			else:
 				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
 				enrichment_dict[sequence] = fold_enrichment
 
 		# For the sequences that don't exist in the starting library
 		if (include_zero_count):
-		for sequence in library_of_interest:
+			for sequence in library_of_interest:
 				if sequence in starting_library:
 					continue
 

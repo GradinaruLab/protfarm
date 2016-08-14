@@ -80,7 +80,7 @@ class Analysis_Set:
 
 		return specificity_dict
 
-	def get_enrichment(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=False):
+	def get_enrichment(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=False,zero_count_magic_number = 0.9,include_zero_count=False):
 
 		library_of_interest = self.sequence_libraries[library_of_interest_name]
 		library_of_interest_total_count = library_of_interest.get_total_count()
@@ -91,41 +91,53 @@ class Analysis_Set:
 
 		enrichment_dict = {}
 		for sequence in starting_library:
+			if (Log_Scale):
+				if library_of_interest[sequence] == 0:
+					library_of_interest[sequence] = zero_count_magic_number
+					
+				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
+				enrichment_dict[sequence] = math.log10(fold_enrichment)
 
-			if sequence not in library_of_interest:
-				enrichment_dict[sequence] = 0.0
-				#pass
 			else:
-				#TODO: do this for now to avoid divide by 0 issues 
-				# if (library_of_interest[sequence] == 0):
-				# 	library_of_interest[sequence] = 1
-				# if (starting_library[sequence] == 0):
-				# 	library_of_interest[sequence] = 1
-
-				if (Log_Scale):
-					if library_of_interest[sequence] == 0:
-						library_of_interest[sequence] = zero_count_magic_number
-						
-					fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
-					enrichment_dict[sequence] = math.log10(fold_enrichment)
-
-				else:
-					fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
-					enrichment_dict[sequence] = fold_enrichment
+				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
+				enrichment_dict[sequence] = fold_enrichment
 
 		# For the sequences that don't exist in the starting library
+		if (include_zero_count):
 		for sequence in library_of_interest:
-			if sequence in starting_library:
-				continue
+				if sequence in starting_library:
+					continue
 
-			fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number / starting_library_total_count)
+				fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (Analysis_Set.zero_count_magic_number / starting_library_total_count)
+
+				if Log_Scale:
+					enrichment_dict[sequence] = math.log10(fold_enrichment)
+				else:
+					enrichment_dict[sequence] = fold_enrichment
+
+		return enrichment_dict
+
+	def get_enrichment_library_of_interest(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=False, zero_count_magic_number = 0.9):
+		library_of_interest = self.sequence_libraries[library_of_interest_name]
+		library_of_interest_total_count = library_of_interest.get_total_count()
+		library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
+		starting_library = self.sequence_libraries[starting_library_name]
+		starting_library_total_count = starting_library.get_total_count()
+		starting_library = starting_library.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
+		enrichment_dict = {}
+		for sequence in library_of_interest:
+			if sequence not in starting_library:
+				fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number / starting_library_total_count)
 
 			if Log_Scale:
 				enrichment_dict[sequence] = math.log10(fold_enrichment)
 			else:
 				enrichment_dict[sequence] = fold_enrichment
-
 		return enrichment_dict
+
+
+
+
 
 	def export_enrichment_specificity(self, filename, starting_libary_name, \
 		libraries_to_compare_names, by_amino_acid = False, \

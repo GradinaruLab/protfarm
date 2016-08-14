@@ -24,7 +24,7 @@ class Analysis_Set:
 		specificity_dict={}
 		library_of_interest = self.sequence_libraries[library_of_interest_name]
 
-		print "Getting specificity of \'" + library_of_interest_name + "\'"
+		#print "Getting specificity of \'" + library_of_interest_name + "\'"
 
 		library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold)
 
@@ -41,8 +41,8 @@ class Analysis_Set:
 
 		num_comparing_libraries = len(libraries_to_compare_names) + 1
 
-		print "Comparing to " + str(num_comparing_libraries) + " library(ies)"
-		print "Library of interest total count: " + str(library_of_interest_total_count)
+		#print "Comparing to " + str(num_comparing_libraries) + " library(ies)"
+		#print "Library of interest total count: " + str(library_of_interest_total_count)
 
 		for key in library_of_interest:
 
@@ -53,10 +53,14 @@ class Analysis_Set:
 
 				library_presence = 0
 				if key in library_to_compare:
-					library_presence = library_to_compare[key]/libraries_to_compare_total_counts[library_to_compare_index]
+					#print key + " is in! Count: " + str(library_to_compare[key])
+					library_presence = library_to_compare[key] * 1.0 /libraries_to_compare_total_counts[library_to_compare_index]
 					comparing_libraries_presence += library_presence
+				else:
+					pass
+					#print key + " is NOT in!"
 
-				print "Presence of " + key + " in " + libraries_to_compare_names[library_to_compare_index] + ": " + str(library_presence)
+				#print "Presence of " + key + " in " + libraries_to_compare_names[library_to_compare_index] + ": " + str(library_presence)
 
 			library_of_interest_presence = 1.0*library_of_interest[key]/library_of_interest_total_count
 			comparing_libraries_presence += library_of_interest_presence

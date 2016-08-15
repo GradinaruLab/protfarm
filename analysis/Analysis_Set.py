@@ -136,9 +136,6 @@ class Analysis_Set:
 		return enrichment_dict
 
 
-
-
-
 	def export_enrichment_specificity(self, filename, starting_libary_name, \
 		libraries_to_compare_names, by_amino_acid = False, \
 		count_threshold = 0):

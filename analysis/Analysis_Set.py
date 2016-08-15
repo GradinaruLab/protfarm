@@ -80,7 +80,7 @@ class Analysis_Set:
 
 		return specificity_dict
 
-	def get_enrichment(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=False,zero_count_magic_number = 0.9,include_zero_count=False):
+	def get_enrichment(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=True, zero_count_magic_number = 0.9,include_zero_count=False):
 
 		library_of_interest = self.sequence_libraries[library_of_interest_name]
 		library_of_interest_total_count = library_of_interest.get_total_count()
@@ -94,7 +94,7 @@ class Analysis_Set:
 
 			if sequence not in library_of_interest or library_of_interest[sequence] == 0:
 				library_of_interest[sequence] = zero_count_magic_number
-				
+
 			if (Log_Scale):					
 				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
 				enrichment_dict[sequence] = math.log10(fold_enrichment)

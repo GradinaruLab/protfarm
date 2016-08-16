@@ -15,7 +15,7 @@ def get_fastq_files():
     fastq_files = [file for file in os.listdir(raw_data_directory) \
         if file.endswith('.fastq')]
 
-    return fastq_files
+    return fastq_files.sort()
 
 def write_sequence_file(library, alignment, sequence_uuid_counts):
 

@@ -15,7 +15,15 @@ class Analysis_Set:
 	def add_library(self, library):
 
 		sequence_library = Sequence_Library(library)
+		self.sequence_length = sequence_library.get_sequence_length()
 		self.sequence_libraries[library.name] = sequence_library
+
+	def get_sequence_length(self, by_amino_acid = True):
+
+		if by_amino_acid:
+			return self.sequence_length / 3
+		else:
+			return self.sequence_length
 
 	# libraries_of_interest: list of identifiers for the library that you want the specificity of
 	# libraries_to_compare: list of identifiers for the library that you want to compare the specificity against

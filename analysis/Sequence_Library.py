@@ -16,6 +16,10 @@ class Sequence_Library:
         for sequence_UUID_index in range(len(self._sequence_UUID_counts)):
             self._sequence_UUID_counts[sequence_UUID_index][2] = int(self._sequence_UUID_counts[sequence_UUID_index][2])
 
+    def get_sequence_length(self):
+
+        return len(self._sequence_UUID_counts[0][0])
+
     def get_total_count(self):
         """Returns total count of sequences"""
 

@@ -111,7 +111,8 @@ def align_all(callback):
     num_alignments = 0
 
     for alignment in alignments:
-        if alignment.method not in [Perfect_Match_Aligner.__name__]:
+        if alignment.method not in [Perfect_Match_Aligner.__name__,
+            Bowtie_Aligner.__name__]:
             raise Exception('Invalid alignment method, \'' + alignment.method \
                 + '\', detected.')
 

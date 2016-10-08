@@ -44,7 +44,7 @@ class Sequence_Library:
 
                 amino_acid_sequence = DNA.translate_dna_single(sequence)
 
-                if amino_acid_sequence.find('#') != -1 and filter_invalid:
+                if (amino_acid_sequence.find('#') != -1 or amino_acid_sequence.find('x') != -1) and filter_invalid:
                     continue
 
                 sequence = amino_acid_sequence

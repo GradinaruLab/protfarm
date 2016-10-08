@@ -11,6 +11,7 @@ class Analysis_Set:
 	def __init__(self):
 
 		self.sequence_libraries = {}
+		self.sequence_length = 0
 
 	def add_library(self, library):
 
@@ -24,6 +25,9 @@ class Analysis_Set:
 			return self.sequence_length / 3
 		else:
 			return self.sequence_length
+
+	def get_libraries(self):
+		return self.sequence_libraries
 
 	# libraries_of_interest: list of identifiers for the library that you want the specificity of
 	# libraries_to_compare: list of identifiers for the library that you want to compare the specificity against
@@ -143,7 +147,6 @@ class Analysis_Set:
 				enrichment_dict[sequence] = fold_enrichment
 		return enrichment_dict
 
-
 	def export_enrichment_specificity(self, filename, starting_libary_name, \
 		libraries_to_compare_names, by_amino_acid = False, \
 		count_threshold = 0):
@@ -166,7 +169,7 @@ class Analysis_Set:
 			header_row.append(library_name + ' enrichment')
 			header_row.append(library_name + ' specificity')
 
-			fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0)
+			fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = False)
 			specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid, count_threshold = 0)
 			library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
 			

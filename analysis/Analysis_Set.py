@@ -111,13 +111,13 @@ class Analysis_Set:
 
 					if sequence not in aggregate_starting_library:
 						aggregate_starting_library[sequence] = sequence_count
-					else
+					else:
 						aggregate_starting_library[sequence] += sequence_count
 
 			starting_library = aggregate_starting_library
 
 		else:
-			starting_library = self.sequence_libraries[starting_library_name]
+			starting_library = self.sequence_libraries[starting_library_names]
 			starting_library_total_count = starting_library.get_total_count()
 			starting_library = starting_library.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
 

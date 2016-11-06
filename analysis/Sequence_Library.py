@@ -13,9 +13,6 @@ class Sequence_Library:
         self._sequence_UUID_counts = csv_wrapper.read_csv_file(\
             alignment_file_name)
 
-        for sequence_UUID_index in range(len(self._sequence_UUID_counts)):
-            self._sequence_UUID_counts[sequence_UUID_index][2] = int(self._sequence_UUID_counts[sequence_UUID_index][2])
-
     def get_sequence_length(self):
 
         return len(self._sequence_UUID_counts[0][0])
@@ -38,23 +35,23 @@ class Sequence_Library:
         for sequence_UUID_count in self._sequence_UUID_counts:
             
             sequence = sequence_UUID_count[0]
+
+            if (filter_invalid or by_amino_acid) and sequence.find('N') != -1:
+                continue
+
             sequence_count = sequence_UUID_count[2]
 
             if by_amino_acid:
 
-                amino_acid_sequence = DNA.translate_dna_single(sequence)
+                sequence = DNA.translate_dna_single(sequence)
 
-                if (amino_acid_sequence.find('#') != -1 or amino_acid_sequence.find('x') != -1) and filter_invalid:
+                if filter_invalid and sequence.find("#") != -1:
                     continue
 
-                sequence = amino_acid_sequence
-
-
-
             if sequence not in sequence_counts:
-                sequence_counts[sequence] = 0
-
-            sequence_counts[sequence] += sequence_count
+                sequence_counts[sequence] = sequence_count
+            else:
+                sequence_counts[sequence] += sequence_count
 
         for sequence, sequence_count in sequence_counts.items():
 

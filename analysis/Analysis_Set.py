@@ -146,7 +146,7 @@ class Analysis_Set:
 					enrichment_dict[sequence] = math.log10(fold_enrichment)
 				else:
 					enrichment_dict[sequence] = fold_enrichment
-
+		
 		return enrichment_dict
 
 	def get_enrichment_library_of_interest(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=False, zero_count_magic_number = 0.9):

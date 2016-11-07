@@ -33,32 +33,56 @@ class Analysis_Set:
 	# libraries_to_compare: list of identifiers for the library that you want to compare the specificity against
 	#
 	# Returns: Nx2 matrix, 1st column is sequence, 2nd column is specificity score
-	def get_specificity(self, library_of_interest_name, libraries_to_compare_names, by_amino_acid = True, count_threshold = 10):
+	def get_specificity(self, library_of_interest_names, libraries_to_compare_names, by_amino_acid = True, count_threshold = 10):
 
 		specificity_dict={}
-		library_of_interest = self.sequence_libraries[library_of_interest_name]
 
-		#print "Getting specificity of \'" + library_of_interest_name + "\'"
+		library_of_interest_total_count = 0;
 
-		library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold)
+		if isinstance(library_of_interest_names, list):
+
+			sequence_counts = {}
+
+			for library_of_interest_name in library_of_interest_names:
+				library_of_interest = self.sequence_libraries[library_of_interest_name]
+				library_of_interest_total_count += library_of_interest.get_total_count()
+				library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
+
+				for sequence, count in library_of_interest_counts.items():
+					if sequence not in sequence_counts:
+						sequence_counts[sequence] = count
+					else
+						sequence_counts[sequence] += count
+
+			below_threshold_sequences = set()
+			for sequence, count in sequence_counts.items():
+				if count < count_threshold:
+					below_threshold_sequences.add(sequence)
+
+			for sequence in below_threshold_sequences:
+				del(sequence_counts[sequence])
+
+			num_comparing_libraries = len(libraries_to_compare_names) + len(library_of_interest_names)
+		else:
+			library_of_interest = self.sequence_libraries[library_of_interest_names]
+			library_of_interest_total_count = library_of_interest.get_total_count()
+			sequence_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
+
+			num_comparing_libraries = len(libraries_to_compare_names) + 1
 
 		libraries_to_compare = []
 		libraries_to_compare_total_counts = []
 
 		for library_to_compare_name in libraries_to_compare_names:
 			library_to_compare = self.sequence_libraries[library_to_compare_name]
+			libraries_to_compare_total_counts.append(library_to_compare.get_total_count())
 			library_to_compare = library_to_compare.get_sequence_counts(by_amino_acid, count_threshold)
 			libraries_to_compare.append(library_to_compare)
-			libraries_to_compare_total_counts.append(sum(library_to_compare.values()))
-
-		library_of_interest_total_count = sum(library_of_interest.values())
-
-		num_comparing_libraries = len(libraries_to_compare_names) + 1
 
 		#print "Comparing to " + str(num_comparing_libraries) + " library(ies)"
 		#print "Library of interest total count: " + str(library_of_interest_total_count)
 
-		for key in library_of_interest:
+		for key in sequence_counts:
 
 			comparing_libraries_presence = 0
 
@@ -76,7 +100,7 @@ class Analysis_Set:
 
 				#print "Presence of " + key + " in " + libraries_to_compare_names[library_to_compare_index] + ": " + str(library_presence)
 
-			library_of_interest_presence = 1.0*library_of_interest[key]/library_of_interest_total_count
+			library_of_interest_presence = 1.0*sequence_counts[key]/library_of_interest_total_count
 			comparing_libraries_presence += library_of_interest_presence
 
 			sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)

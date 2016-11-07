@@ -51,7 +51,7 @@ class Analysis_Set:
 				for sequence, count in library_of_interest_counts.items():
 					if sequence not in sequence_counts:
 						sequence_counts[sequence] = count
-					else
+					else:
 						sequence_counts[sequence] += count
 
 			below_threshold_sequences = set()

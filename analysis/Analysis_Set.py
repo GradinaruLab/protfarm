@@ -116,11 +116,37 @@ class Analysis_Set:
 
 		return specificity_dict
 
-	def get_enrichment(self, library_of_interest_name, starting_library_names, by_amino_acid = True, count_threshold = 10, Log_Scale=True, zero_count_magic_number = 0.9,include_zero_count=False):
+	def get_enrichment(self, library_of_interest_names, starting_library_names, by_amino_acid = True, count_threshold = 10, Log_Scale=True, zero_count_magic_number = 0.9,include_zero_count=False):
 
-		library_of_interest = self.sequence_libraries[library_of_interest_name]
-		library_of_interest_total_count = library_of_interest.get_total_count()
-		library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
+		if isinstance(library_of_interest_names, list):
+
+			library_of_interest_total_count = 0
+			sequence_counts = {}
+
+			for library_of_interest_name in library_of_interest_names:
+				library_of_interest = self.sequence_libraries[library_of_interest_name]
+				library_of_interest_total_count += library_of_interest.get_total_count()
+				library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
+
+				for sequence, count in library_of_interest_counts.items():
+					if sequence not in sequence_counts:
+						sequence_counts[sequence] = count
+					else:
+						sequence_counts[sequence] += count
+
+			below_threshold_sequences = set()
+			for sequence, count in sequence_counts.items():
+				if count < count_threshold:
+					below_threshold_sequences.add(sequence)
+
+			for sequence in below_threshold_sequences:
+				del(sequence_counts[sequence])
+
+			library_of_interest = sequence_counts
+		else:
+			library_of_interest = self.sequence_libraries[library_of_interest_names]
+			library_of_interest_total_count = library_of_interest.get_total_count()
+			library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
 		
 		if isinstance(starting_library_names, list):
 

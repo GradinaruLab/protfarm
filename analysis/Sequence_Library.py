@@ -26,6 +26,10 @@ class Sequence_Library:
             sum += sequence_UUID_count[2]
 
         return sum
+
+    @property
+    def sequence_UUID_counts(self):
+        return self._sequence_UUID_counts
         
     def get_sequence_counts(self, by_amino_acid=True, count_threshold=10, filter_invalid=True):
         """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""

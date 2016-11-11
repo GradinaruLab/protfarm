@@ -3,6 +3,7 @@ import csv
 from utils import DNA
 import math
 from workspace import Workspace as ws
+from workspace import Database as db
 
 class Analysis_Set:
 
@@ -14,6 +15,8 @@ class Analysis_Set:
 		self.sequence_length = 0
 
 	def add_library(self, library):
+		if isinstance(library,str):
+			library = db.get_library(library)
 
 		sequence_library = Sequence_Library(library)
 		self.sequence_length = sequence_library.get_sequence_length()

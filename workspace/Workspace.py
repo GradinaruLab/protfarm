@@ -15,7 +15,7 @@ def get_fastq_files():
     fastq_files = [file for file in os.listdir(raw_data_directory) \
         if file.endswith('.fastq')]
 
-    fastq_files.sort() 
+    fastq_files.sort()
 
     return fastq_files
 
@@ -61,7 +61,7 @@ def remove_library_alignments(library):
 def set_workspace_path(new_workspace_path):
     """Set the current workspace path. This is where the db and all other
     files are located"""
-    
+
     global workspace_path
 
     workspace_path = new_workspace_path
@@ -97,7 +97,7 @@ def mkdir_if_not_exists(dir):
         os.makedirs(dir)
 
 def align_all(callback):
-    
+
     from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
     from sequencing.Bowtie_Aligner import Bowtie_Aligner
     from sequencing.Aligner import Aligner
@@ -164,7 +164,7 @@ def update_library_alignment_progress(library_progress_string):
 
 def set_active_alignment(alignment):
     global active_alignment
-    
+
     active_alignment = alignment
     db.set_active_alignment(alignment)
 

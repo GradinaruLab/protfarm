@@ -30,14 +30,14 @@ class Sequence_Library:
     @property
     def sequence_UUID_counts(self):
         return self._sequence_UUID_counts
-        
+
     def get_sequence_counts(self, by_amino_acid=True, count_threshold=10, filter_invalid=True):
         """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""
 
         sequence_counts = {}
 
         for sequence_UUID_count in self._sequence_UUID_counts:
-            
+
             sequence = sequence_UUID_count[0]
 
             if (filter_invalid or by_amino_acid) and sequence.find('N') != -1:
@@ -57,9 +57,13 @@ class Sequence_Library:
             else:
                 sequence_counts[sequence] += sequence_count
 
+        masked_sequence_counts = {}
         for sequence, sequence_count in sequence_counts.items():
 
             if sequence_count < count_threshold:
-                del sequence_counts[sequence]
+                pass
+            else:
+                masked_sequence_counts[sequence] = sequence_count
+                #del sequence_counts[sequence]
 
-        return sequence_counts
+        return masked_sequence_counts

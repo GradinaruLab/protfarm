@@ -1,4 +1,4 @@
-import Database as db
+from . import Database as db
 
 class Alignment(object):
 
@@ -33,11 +33,11 @@ class Alignment(object):
     @property
     def method(self):
         return self._method
-    
+
     @property
     def parameters(self):
         return self._parameters
-    
+
     @property
     def library_templates(self):
         return self._library_templates
@@ -49,7 +49,7 @@ class Alignment(object):
     @property
     def id(self):
         return self._id
-    
+
     @method.setter
     def method(self, new_method):
         raise Exception('You can\'t do that!')

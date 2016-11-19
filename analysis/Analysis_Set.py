@@ -1,4 +1,4 @@
-from Sequence_Library import Sequence_Library
+from analysis.Sequence_Library import Sequence_Library
 import csv
 from utils import DNA
 import math
@@ -150,7 +150,7 @@ class Analysis_Set:
 			library_of_interest = self.sequence_libraries[library_of_interest_names]
 			library_of_interest_total_count = library_of_interest.get_total_count()
 			library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
-		
+
 		if isinstance(starting_library_names, list):
 
 			aggregate_starting_library = {}
@@ -180,7 +180,7 @@ class Analysis_Set:
 			if sequence not in library_of_interest or library_of_interest[sequence] == 0:
 				library_of_interest[sequence] = zero_count_magic_number
 
-			if (Log_Scale):					
+			if (Log_Scale):
 				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
 				enrichment_dict[sequence] = math.log10(fold_enrichment)
 			else:
@@ -199,7 +199,7 @@ class Analysis_Set:
 					enrichment_dict[sequence] = math.log10(fold_enrichment)
 				else:
 					enrichment_dict[sequence] = fold_enrichment
-		
+
 		return enrichment_dict
 
 	def get_enrichment_library_of_interest(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=False, zero_count_magic_number = 0.9):
@@ -245,7 +245,7 @@ class Analysis_Set:
 			fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = False)
 			specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid, count_threshold = 0)
 			library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
-			
+
 			for sequence, sequence_count in library_counts.iteritems():
 
 				if sequence not in cumulative_counts:

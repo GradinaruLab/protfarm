@@ -1,6 +1,6 @@
-import Library
-import Alignment
-import Template
+from . import Library
+from . import Alignment
+from . import Template
 import json
 import os
 
@@ -28,7 +28,7 @@ def load_database(new_path):
         templates_file = open(template_db_path)
         alignments_file = open(alignment_db_path)
 
-        
+
 
 
         library_db = json.load(libraries_file)

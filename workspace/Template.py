@@ -1,4 +1,4 @@
-import Database as db
+from . import Database as db
 from utils import DNA
 
 class Template(object):
@@ -14,7 +14,7 @@ class Template(object):
     def get_variant_template(self):
 
         variant_template = ''
-        
+
         for sequence_element in self._sequence:
             if sequence_element in DNA.IUPAC and \
                 sequence_element not in DNA.get_nucleotides():
@@ -29,11 +29,11 @@ class Template(object):
     @sequence.setter
     def sequence(self, new_sequence):
         raise Exception('Can\'t change sequence of a template!')
-    
+
     @property
     def id(self):
         return self._id
-    
+
     @id.setter
     def id(self, new_id):
         raise Exception('Can\'t change id of a template!')

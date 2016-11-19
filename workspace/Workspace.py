@@ -3,7 +3,7 @@ import os
 import json
 import importlib
 
-import Database as db
+from . import Database as db
 from fileio import csv_wrapper
 
 def get_fastq_files():

@@ -1,6 +1,6 @@
 import os
-import Database as db
-import Workspace as ws
+from . import Database as db
+from . import Workspace as ws
 
 class Library(object):
 
@@ -66,4 +66,3 @@ class Library(object):
     @id.setter
     def id(self, new_id):
         raise Exception('Can\'t change id of a library!')
-    

@@ -64,6 +64,5 @@ class Sequence_Library:
                 pass
             else:
                 masked_sequence_counts[sequence] = sequence_count
-                #del sequence_counts[sequence]
 
         return masked_sequence_counts

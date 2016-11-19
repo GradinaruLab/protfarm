@@ -7,8 +7,6 @@ from workspace import Database as db
 
 class Analysis_Set:
 
-	zero_count_magic_number = 0.5
-
 	def __init__(self):
 
 		self.sequence_libraries = {}
@@ -193,7 +191,7 @@ class Analysis_Set:
 				if sequence in starting_library:
 					continue
 
-				fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (Analysis_Set.zero_count_magic_number / starting_library_total_count)
+				fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number / starting_library_total_count)
 
 				if Log_Scale:
 					enrichment_dict[sequence] = math.log10(fold_enrichment)
@@ -219,6 +217,72 @@ class Analysis_Set:
 			else:
 				enrichment_dict[sequence] = fold_enrichment
 		return enrichment_dict
+
+	def export_enrichment(self, filename, starting_libary_name, \
+		by_amino_acid = False, count_threshold = 0, log_scale = False):
+
+		num_sequence_libraries = len(self.sequence_libraries)
+
+		cumulative_counts = {}
+		cumulative_enrichments = {}
+
+		library_index = 0
+
+		header_row = ['Sequence']
+		if not by_amino_acid:
+			header_row.append('Amino Acid')
+
+		for library_name, library in self.sequence_libraries.items():
+
+			print('Getting counts and enrichment for ' + library_name)
+
+			header_row.append(library_name)
+			header_row.append(library_name + ' enrichment')
+
+			if isinstance(starting_libary_name, dict):
+				fold_enrichments = self.get_enrichment(library_name, starting_libary_name[library_name], by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = True)
+			else:
+				fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = True)
+			
+			library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
+
+			for sequence, sequence_count in library_counts.items():
+
+				if sequence not in cumulative_counts:
+					cumulative_counts[sequence] = [0] * num_sequence_libraries
+					cumulative_enrichments[sequence] = [0] * num_sequence_libraries
+
+				if sequence in fold_enrichments:
+					cumulative_enrichments[sequence][library_index] = fold_enrichments[sequence]
+
+				cumulative_counts[sequence][library_index] = sequence_count
+
+			library_index += 1
+
+		data = []
+
+		for sequence, sequence_counts in sorted(cumulative_counts.items(), key=lambda kv: sum(kv[1]), reverse=True):
+
+			sequence_row = [sequence]
+
+			if not by_amino_acid:
+				sequence_row.append(DNA.translate_dna_single(sequence))
+
+			if sum(sequence_counts) < count_threshold:
+				continue
+
+			library_index = 0
+
+			fold_enrichments = cumulative_enrichments[sequence]
+
+			for sequence_count in sequence_counts:
+				sequence_row.append(sequence_count)
+				sequence_row.append(fold_enrichments[library_index])
+				library_index += 1
+
+			data.append(sequence_row)
+
+		ws.export_csv(filename, header_row, data)
 
 	def export_enrichment_specificity(self, filename, starting_libary_name, \
 		libraries_to_compare_names, by_amino_acid = False, \

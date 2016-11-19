@@ -2,8 +2,8 @@ import glob
 import os
 import json
 import importlib
-
 from . import Database as db
+
 from fileio import csv_wrapper
 
 def get_fastq_files():

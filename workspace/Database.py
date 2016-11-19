@@ -1,8 +1,9 @@
+import json
+import os
+
 from . import Library
 from . import Alignment
 from . import Template
-import json
-import os
 
 from utils import utils
 

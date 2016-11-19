@@ -1,10 +1,11 @@
 import os
-from . import Database as db
-from . import Workspace as ws
 
 class Library(object):
 
     def __init__(self, name, id = 0):
+
+        from . import Database as db
+
         self._fastq_files = []
         self._name = name
 
@@ -14,6 +15,8 @@ class Library(object):
             self._id = id
 
     def add_file(self, file_name):
+
+        from . import Database as db
 
         try:
             existing_file_index = self._fastq_files.index(file_name)
@@ -25,6 +28,10 @@ class Library(object):
         db.update_library(self)
 
     def remove_file(self, file_name):
+
+        from . import Database as db
+        from . import Workspace as ws
+
         file_to_remove_index = self._fastq_files.index(file_name)
         del self._fastq_files[file_to_remove_index]
         db.update_library(self)
@@ -56,6 +63,8 @@ class Library(object):
 
     @name.setter
     def name(self, new_name):
+
+        from . import Database as db
         self._name = new_name
         db.update_library(self)
 

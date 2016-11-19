@@ -1,5 +1,3 @@
-from . import Database as db
-
 class Alignment(object):
 
     def __init__(self, method, parameters, library_templates, \
@@ -18,10 +16,13 @@ class Alignment(object):
         self._name = self._method + ' ' + str(id)
 
     def add_statistics(self, library, statistics):
+
+        from . import Database as db
         self._statistics[library.id] = statistics
         db.update_alignment(self)
 
     def remove_library(self, library):
+        from . import Database as db
         if library.id in self._statistics:
             del self._statistics[library.id]
             db.update_alignment(self)

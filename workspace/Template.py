@@ -1,9 +1,10 @@
-from . import Database as db
 from utils import DNA
 
 class Template(object):
 
     def __init__(self, sequence, id = 0):
+
+        from . import Database as db
         self._sequence = sequence
 
         if id == 0:

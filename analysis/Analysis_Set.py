@@ -158,7 +158,7 @@ class Analysis_Set:
 				starting_library_total_count = starting_library.get_total_count()
 				starting_library = starting_library.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
 
-				for sequence, sequence_count in starting_library.iteritems():
+				for sequence, sequence_count in starting_library.items():
 
 					if sequence not in aggregate_starting_library:
 						aggregate_starting_library[sequence] = sequence_count
@@ -300,7 +300,7 @@ class Analysis_Set:
 		if not by_amino_acid:
 			header_row.append('Amino Acid')
 
-		for library_name, library in self.sequence_libraries.iteritems():
+		for library_name, library in self.sequence_libraries.items():
 
 			header_row.append(library_name)
 			header_row.append(library_name + ' enrichment')
@@ -310,7 +310,7 @@ class Analysis_Set:
 			specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid, count_threshold = 0)
 			library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
 
-			for sequence, sequence_count in library_counts.iteritems():
+			for sequence, sequence_count in library_counts.items():
 
 				if sequence not in cumulative_counts:
 					cumulative_counts[sequence] = [0] * num_sequence_libraries

@@ -194,9 +194,9 @@ def export_alignment_statistics():
     # First, get all the headers we'll need
     for alignment in db.get_alignments():
 
-        for library_id, statistics in alignment.statistics.iteritems():
+        for library_id, statistics in alignment.statistics.items():
 
-            for statistic_label, statistic in statistics.iteritems():
+            for statistic_label, statistic in statistics.items():
                 unique_fields.add(statistic_label)
 
     statistic_labels = []
@@ -211,7 +211,7 @@ def export_alignment_statistics():
 
     for alignment in db.get_alignments():
 
-        for library_id, statistics in alignment.statistics.iteritems():
+        for library_id, statistics in alignment.statistics.items():
 
             row = [alignment.name, db.get_library_by_id(library_id).name]
 

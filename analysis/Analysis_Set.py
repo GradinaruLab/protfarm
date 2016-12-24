@@ -23,7 +23,7 @@ class Analysis_Set:
 	def get_sequence_length(self, by_amino_acid = True):
 
 		if by_amino_acid:
-			return self.sequence_length / 3
+			return int(self.sequence_length / 3)
 		else:
 			return self.sequence_length
 

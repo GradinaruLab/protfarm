@@ -7,9 +7,6 @@ class Sequence_Library:
 
     # Loads the sequence library file associated with a library
 
-
-    filtered_sequence_counts = None
-
     def __init__(self, library):
 
         alignment_file_name = ws.get_alignment_file_name(library, \
@@ -38,8 +35,7 @@ class Sequence_Library:
 
     def get_sequence_counts(self, by_amino_acid=True, count_threshold=10, filter_invalid=True):
         """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""
-        if (self.filtered_sequence_counts != None):
-            return self.filtered_sequence_counts
+
         sequence_counts = {}
 
         for sequence_UUID_count in self._sequence_UUID_counts:
@@ -76,12 +72,13 @@ class Sequence_Library:
     def eliminate_bias(self,predicted_bias_percentage,num_nucleotides_off):
         """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""
 
-        # Initiliaze variables
+        print('Eliminating bias from ' + str(len(self._sequence_UUID_counts)) + ' sequences')
+        # Initialize variables
         filtered_sequences = []
         current_high_count_sequence = 0;
 
         # Get a dictionary of unique sequences and their respective counts
-        sequence_dict = self.get_sequence_counts(False,10,True)
+        sequence_dict = self.get_sequence_counts(False,0,True)
 
         #Generate an ordered list
         sorted_sequence_list = sorted(sequence_dict.items(),key=lambda x: x[1], reverse=True)
@@ -90,8 +87,9 @@ class Sequence_Library:
         #Iterate through the list and eliminate sequences with bias
         counter = 0
         num_filtered = 0
+
         for sequence_index in range(len(sorted_sequence_list)):
-            if (sequence_index >= len(sorted_sequence_list)):
+            if sorted_sequence_list[sequence_index][1] * predicted_bias_percentage < 1:
                 break
             else:       
                 current_sequence_compare_value = predicted_bias_percentage*sorted_sequence_list[sequence_index][1]
@@ -104,29 +102,23 @@ class Sequence_Library:
                     if (Sequence_Library.sequence_comparable(sorted_sequence_list[sequence_under_test_index+counter][0],current_sequence,num_nucleotides_off)):
                         if (sorted_sequence_list[sequence_under_test_index+counter][1] <= current_sequence_compare_value):
                             # DEBUG #
-                            print('Sequence with high count is '+current_sequence)
-                            print('High count sequence value is '+str(sorted_sequence_list[sequence_index][1]))
-                            print('The sequence that is the bias of the high count sequence is '+sorted_sequence_list[sequence_under_test_index+counter][0])
-                            print('That sequence value is '+str(sorted_sequence_list[sequence_under_test_index+counter][1]))
+                            # print('Sequence with high count is '+current_sequence)
+                            # print('High count sequence value is '+str(sorted_sequence_list[sequence_index][1]))
+                            # print('The sequence that is the bias of the high count sequence is '+sorted_sequence_list[sequence_under_test_index+counter][0])
+                            # print('That sequence value is '+str(sorted_sequence_list[sequence_under_test_index+counter][1]))
                             num_filtered = num_filtered + 1
                             # END DEBUG #
                             list_of_sequences_to_delete.append(sequence_under_test_index+counter)
-
-        print(str(num_filtered))                   
+                 
         # Iterate in reverse through sequence list to delete bad indices
         for bad_sequence_index in list_of_sequences_to_delete[::-1]:
-            sorted_sequence_list.remove(list_of_sequences_to_delete[bad_sequence_index])
-            if (list_of_sequences_to_delete[bad_sequence_index] == counter):
-                counter = counter - 1
+            del sorted_sequence_list[bad_sequence_index]
 
-        filtered_sequence_dict = {}       
+        self._sequence_UUID_counts = []
         for index in range(len(sorted_sequence_list)):
-            filtered_sequence_dict[sorted_sequence_list[index][0]] = sorted_sequence_list[index][1]
+            self._sequence_UUID_counts.append([sorted_sequence_list[index][0], '', sorted_sequence_list[index][1]])
 
-        
-        self.filtered_sequence_counts = filtered_sequence_dict
-
-
+        print(str(len(self._sequence_UUID_counts)) + ' sequences remaining after filtering')
 
     def sequence_comparable(sequence_to_compare,sequence_to_be_compared_to,threshold):
         """Returns true if two string are comparable given user defined threshold"""

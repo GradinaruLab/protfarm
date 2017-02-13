@@ -117,7 +117,13 @@ class Analysis_Set:
 
 		return specificity_dict
 
-	def get_enrichment(self, library_of_interest_names, starting_library_names, by_amino_acid = True, count_threshold = 10, Log_Scale=True, zero_count_magic_number = 0.9,include_zero_count=False, filter_invalid = True):
+	def get_enrichment(self, library_of_interest_names, starting_library_names,
+		by_amino_acid = True, count_threshold = 10, Log_Scale=True,
+		zero_count_magic_number = 0.9,include_zero_count=False,
+		filter_invalid = True, count_threshold_starting_library = None,
+		count_threshold_library_of_interest = None,
+		zero_count_magic_number_starting_library = None,
+		zero_count_magic_number_library_of_interest = None):
 		
 		if isinstance(library_of_interest_names, list):
 
@@ -164,37 +170,76 @@ class Analysis_Set:
 			starting_library_total_count = starting_library.get_total_count()
 			starting_library = starting_library.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
 
-		below_threshold_sequences = set()
+		# If the user has specified separate thresholds for the starting
+		# library and library of interest, we process them separately
+		if count_threshold_starting_library or count_threshold_library_of_interest:
+			if not count_threshold_starting_library:
+				count_threshold_starting_library = count_threshold
+			if not count_threshold_library_of_interest:
+				count_threshold_library_of_interest = count_threshold
 
-		# Find all sequences in the library of interest that are below threshold
-		for sequence, count in library_of_interest.items():
-			if sequence in starting_library:
-				count += starting_library[sequence]
+			below_threshold_sequences = set()
 
-			if count < count_threshold:
-				below_threshold_sequences.add(sequence)
+			for sequence, count in starting_library.items():
+				if count < count_threshold_starting_library:
+					below_threshold_sequences.add(sequence)
 
-		# Find all sequences in the starting library that are below threshold
-		for sequence, count in starting_library.items():
-			if sequence in library_of_interest:
-				count += library_of_interest[sequence]
-
-			if count < count_threshold:
-				below_threshold_sequences.add(sequence)
-
-		# Remove below threshold sequences from both libraries
-		for sequence in below_threshold_sequences:
-			if sequence in library_of_interest:
-				del(library_of_interest[sequence])
-			if sequence in starting_library:
+			for sequence in below_threshold_sequences:
 				del(starting_library[sequence])
+
+			below_threshold_sequences = set()
+
+			for sequence, count in library_of_interest.items():
+				if count < count_threshold_library_of_interest:
+					below_threshold_sequences.add(sequence)
+
+			for sequence in below_threshold_sequences:
+				del(library_of_interest[sequence])
+
+		else:
+			below_threshold_sequences = set()
+
+			# Find all sequences in the library of interest that are below threshold
+			for sequence, count in library_of_interest.items():
+				if sequence in starting_library:
+					count += starting_library[sequence]
+
+				if count < count_threshold:
+					below_threshold_sequences.add(sequence)
+
+			# Find all sequences in the starting library that are below threshold
+			for sequence, count in starting_library.items():
+				if sequence in library_of_interest:
+					count += library_of_interest[sequence]
+
+				if count < count_threshold:
+					below_threshold_sequences.add(sequence)
+
+			# Remove below threshold sequences from both libraries
+			for sequence in below_threshold_sequences:
+				if sequence in library_of_interest:
+					del(library_of_interest[sequence])
+				if sequence in starting_library:
+					del(starting_library[sequence])
+
+		if zero_count_magic_number_starting_library:
+			include_zero_count_starting_library = True
+		else:
+			include_zero_count_starting_library = include_zero_count
+			zero_count_magic_number_starting_library = zero_count_magic_number
+
+		if zero_count_magic_number_library_of_interest:
+			include_zero_count_library_of_interest = True
+		else:
+			include_zero_count_library_of_interest = include_zero_count
+			zero_count_magic_number_library_of_interest = zero_count_magic_number
 
 		enrichment_dict = {}
 		for sequence in starting_library:
 
 			if sequence not in library_of_interest:
-				if include_zero_count:
-					library_of_interest[sequence] = zero_count_magic_number
+				if include_zero_count_library_of_interest:
+					library_of_interest[sequence] = zero_count_magic_number_library_of_interest
 				else:
 					continue
 
@@ -206,37 +251,19 @@ class Analysis_Set:
 				enrichment_dict[sequence] = fold_enrichment
 
 		# For the sequences that don't exist in the starting library
-		if (include_zero_count):
+		if (include_zero_count_starting_library):
 			for sequence in library_of_interest:
 
 				if sequence in starting_library:
 					continue
 
-				fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number / starting_library_total_count)
+				fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number_starting_library / starting_library_total_count)
 
 				if Log_Scale:
 					enrichment_dict[sequence] = math.log10(fold_enrichment)
 				else:
 					enrichment_dict[sequence] = fold_enrichment
 
-		return enrichment_dict
-
-	def get_enrichment_library_of_interest(self, library_of_interest_name, starting_library_name, by_amino_acid = True, count_threshold = 10, Log_Scale=False, zero_count_magic_number = 0.9):
-		library_of_interest = self.sequence_libraries[library_of_interest_name]
-		library_of_interest_total_count = library_of_interest.get_total_count()
-		library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
-		starting_library = self.sequence_libraries[starting_library_name]
-		starting_library_total_count = starting_library.get_total_count()
-		starting_library = starting_library.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
-		enrichment_dict = {}
-		for sequence in library_of_interest:
-			if sequence not in starting_library:
-				fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number / starting_library_total_count)
-
-			if Log_Scale:
-				enrichment_dict[sequence] = math.log10(fold_enrichment)
-			else:
-				enrichment_dict[sequence] = fold_enrichment
 		return enrichment_dict
 
 	def export_enrichment(self, filename, starting_libary_name, \

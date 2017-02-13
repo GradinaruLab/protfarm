@@ -87,8 +87,10 @@ class Sequence_Library:
         #Iterate through the list and eliminate sequences with bias
         counter = 0
         num_filtered = 0
-
+        duplicate_indices = 0
+        list_of_sequence_indices_to_delete = set() #make it a set since you might have duplicates
         for sequence_index in range(len(sorted_sequence_list)):
+            # avoids counting sequences that would yield count*percentage less than 1 (there is no sequences less than 0.99)
             if sorted_sequence_list[sequence_index][1] * predicted_bias_percentage < 1:
                 break
             else:       
@@ -97,10 +99,12 @@ class Sequence_Library:
                 counter = counter + 1
                 #print('Sequence under test is '+current_sequence) 
                 #print('Sequence value under test is '+str(current_sequence_compare_value))  
-                list_of_sequences_to_delete = []
+                
                 for sequence_under_test_index in range(len(sorted_sequence_list) - counter):
-                    if (Sequence_Library.sequence_comparable(sorted_sequence_list[sequence_under_test_index+counter][0],current_sequence,num_nucleotides_off)):
+                    if (Sequence_Library.sequence_comparable(sorted_sequence_list[sequence_under_test_index+counter][0],current_sequence,num_nucleotides_off)):                 
                         if (sorted_sequence_list[sequence_under_test_index+counter][1] <= current_sequence_compare_value):
+                            if sequence_under_test_index+counter in list_of_sequence_indices_to_delete:
+                                duplicate_indices = duplicate_indices + 1
                             # DEBUG #
                             # print('Sequence with high count is '+current_sequence)
                             # print('High count sequence value is '+str(sorted_sequence_list[sequence_index][1]))
@@ -108,10 +112,14 @@ class Sequence_Library:
                             # print('That sequence value is '+str(sorted_sequence_list[sequence_under_test_index+counter][1]))
                             num_filtered = num_filtered + 1
                             # END DEBUG #
-                            list_of_sequences_to_delete.append(sequence_under_test_index+counter)
-                 
-        # Iterate in reverse through sequence list to delete bad indices
-        for bad_sequence_index in list_of_sequences_to_delete[::-1]:
+                            list_of_sequence_indices_to_delete.add(sequence_under_test_index+counter)
+
+
+        # print(str(len(list_of_sequence_indices_to_delete)))
+        # print(str(duplicate_indices))        
+        # Reverse sort the set 
+        list_of_sequence_indices_to_delete = sorted(list_of_sequence_indices_to_delete,reverse=True)
+        for bad_sequence_index in list_of_sequence_indices_to_delete:
             del sorted_sequence_list[bad_sequence_index]
 
         self._sequence_UUID_counts = []

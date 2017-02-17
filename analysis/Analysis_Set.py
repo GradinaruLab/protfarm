@@ -122,6 +122,8 @@ class Analysis_Set:
 		zero_count_magic_number = 0.9,include_zero_count=False,
 		filter_invalid = True, count_threshold_starting_library = None,
 		count_threshold_library_of_interest = None,
+		include_zero_count_starting_library = None,
+		include_zero_count_library_of_interest = None,
 		zero_count_magic_number_starting_library = None,
 		zero_count_magic_number_library_of_interest = None):
 		
@@ -222,17 +224,15 @@ class Analysis_Set:
 				if sequence in starting_library:
 					del(starting_library[sequence])
 
-		if zero_count_magic_number_starting_library:
-			include_zero_count_starting_library = True
-		else:
-			include_zero_count_starting_library = include_zero_count
+		if zero_count_magic_number_starting_library == None:
 			zero_count_magic_number_starting_library = zero_count_magic_number
+		if include_zero_count_starting_library == None:
+			include_zero_count_starting_library = include_zero_count
 
-		if zero_count_magic_number_library_of_interest:
-			include_zero_count_library_of_interest = True
-		else:
-			include_zero_count_library_of_interest = include_zero_count
+		if zero_count_magic_number_library_of_interest == None:
 			zero_count_magic_number_library_of_interest = zero_count_magic_number
+		if include_zero_count_library_of_interest == None:
+			include_zero_count_library_of_interest = include_zero_count
 
 		enrichment_dict = {}
 		for sequence in starting_library:

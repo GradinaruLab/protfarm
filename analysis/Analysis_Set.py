@@ -7,412 +7,412 @@ from workspace import Database as db
 
 class Analysis_Set:
 
-	def __init__(self):
+    def __init__(self):
 
-		self.sequence_libraries = {}
-		self.sequence_length = 0
+        self.sequence_libraries = {}
+        self.sequence_length = 0
 
-	def add_library(self, library):
-		if isinstance(library,str):
-			library = db.get_library(library)
+    def add_library(self, library):
+        if isinstance(library,str):
+            library = db.get_library(library)
 
-		sequence_library = Sequence_Library(library)
-		self.sequence_length = sequence_library.get_sequence_length()
-		self.sequence_libraries[library.name] = sequence_library
+        sequence_library = Sequence_Library(library)
+        self.sequence_length = sequence_library.get_sequence_length()
+        self.sequence_libraries[library.name] = sequence_library
 
-	def get_sequence_length(self, by_amino_acid = True):
+    def get_sequence_length(self, by_amino_acid = True):
 
-		if by_amino_acid:
-			return int(self.sequence_length / 3)
-		else:
-			return self.sequence_length
+        if by_amino_acid:
+            return int(self.sequence_length / 3)
+        else:
+            return self.sequence_length
 
-	def get_libraries(self):
-		return self.sequence_libraries
+    def get_libraries(self):
+        return self.sequence_libraries
 
-	# libraries_of_interest: list of identifiers for the library that you want the specificity of
-	# libraries_to_compare: list of identifiers for the library that you want to compare the specificity against
-	#
-	# Returns: Nx2 matrix, 1st column is sequence, 2nd column is specificity score
-	def get_specificity(self, library_of_interest_names, libraries_to_compare_names, by_amino_acid = True, count_threshold = 10):
+    # libraries_of_interest: list of identifiers for the library that you want the specificity of
+    # libraries_to_compare: list of identifiers for the library that you want to compare the specificity against
+    #
+    # Returns: Nx2 matrix, 1st column is sequence, 2nd column is specificity score
+    def get_specificity(self, library_of_interest_names, libraries_to_compare_names, by_amino_acid = True, count_threshold = 10):
 
-		specificity_dict={}
+        specificity_dict={}
 
-		library_of_interest_total_count = 0;
+        library_of_interest_total_count = 0;
 
-		if isinstance(library_of_interest_names, list):
-
-			sequence_counts = {}
+        if isinstance(library_of_interest_names, list):
+
+            sequence_counts = {}
 
-			for library_of_interest_name in library_of_interest_names:
-				library_of_interest = self.sequence_libraries[library_of_interest_name]
-				library_of_interest_total_count += library_of_interest.get_total_count()
-				library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
-
-				for sequence, count in library_of_interest_counts.items():
-					if sequence not in sequence_counts:
-						sequence_counts[sequence] = count
-					else:
-						sequence_counts[sequence] += count
+            for library_of_interest_name in library_of_interest_names:
+                library_of_interest = self.sequence_libraries[library_of_interest_name]
+                library_of_interest_total_count += library_of_interest.get_total_count()
+                library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
+
+                for sequence, count in library_of_interest_counts.items():
+                    if sequence not in sequence_counts:
+                        sequence_counts[sequence] = count
+                    else:
+                        sequence_counts[sequence] += count
 
-			below_threshold_sequences = set()
-			for sequence, count in sequence_counts.items():
-				if count < count_threshold:
-					below_threshold_sequences.add(sequence)
+            below_threshold_sequences = set()
+            for sequence, count in sequence_counts.items():
+                if count < count_threshold:
+                    below_threshold_sequences.add(sequence)
 
-			for sequence in below_threshold_sequences:
-				del(sequence_counts[sequence])
+            for sequence in below_threshold_sequences:
+                del(sequence_counts[sequence])
 
-			num_comparing_libraries = len(libraries_to_compare_names) + len(library_of_interest_names)
-		else:
-			library_of_interest = self.sequence_libraries[library_of_interest_names]
-			library_of_interest_total_count = library_of_interest.get_total_count()
-			sequence_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
+            num_comparing_libraries = len(libraries_to_compare_names) + len(library_of_interest_names)
+        else:
+            library_of_interest = self.sequence_libraries[library_of_interest_names]
+            library_of_interest_total_count = library_of_interest.get_total_count()
+            sequence_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
 
-			num_comparing_libraries = len(libraries_to_compare_names) + 1
+            num_comparing_libraries = len(libraries_to_compare_names) + 1
 
-		libraries_to_compare = []
-		libraries_to_compare_total_counts = []
+        libraries_to_compare = []
+        libraries_to_compare_total_counts = []
 
-		for library_to_compare_name in libraries_to_compare_names:
-			library_to_compare = self.sequence_libraries[library_to_compare_name]
-			libraries_to_compare_total_counts.append(library_to_compare.get_total_count())
-			library_to_compare = library_to_compare.get_sequence_counts(by_amino_acid, count_threshold)
-			libraries_to_compare.append(library_to_compare)
-
-		#print "Comparing to " + str(num_comparing_libraries) + " library(ies)"
-		#print "Library of interest total count: " + str(library_of_interest_total_count)
+        for library_to_compare_name in libraries_to_compare_names:
+            library_to_compare = self.sequence_libraries[library_to_compare_name]
+            libraries_to_compare_total_counts.append(library_to_compare.get_total_count())
+            library_to_compare = library_to_compare.get_sequence_counts(by_amino_acid, count_threshold)
+            libraries_to_compare.append(library_to_compare)
+
+        #print "Comparing to " + str(num_comparing_libraries) + " library(ies)"
+        #print "Library of interest total count: " + str(library_of_interest_total_count)
 
-		for key in sequence_counts:
-
-			comparing_libraries_presence = 0
+        for key in sequence_counts:
+
+            comparing_libraries_presence = 0
 
-			for library_to_compare_index in range(len(libraries_to_compare)):
-				library_to_compare = libraries_to_compare[library_to_compare_index]
+            for library_to_compare_index in range(len(libraries_to_compare)):
+                library_to_compare = libraries_to_compare[library_to_compare_index]
 
-				library_presence = 0
-				if key in library_to_compare:
-					#print key + " is in! Count: " + str(library_to_compare[key])
-					library_presence = library_to_compare[key] * 1.0 /libraries_to_compare_total_counts[library_to_compare_index]
-					comparing_libraries_presence += library_presence
-				else:
-					pass
-					#print key + " is NOT in!"
+                library_presence = 0
+                if key in library_to_compare:
+                    #print key + " is in! Count: " + str(library_to_compare[key])
+                    library_presence = library_to_compare[key] * 1.0 /libraries_to_compare_total_counts[library_to_compare_index]
+                    comparing_libraries_presence += library_presence
+                else:
+                    pass
+                    #print key + " is NOT in!"
 
-				#print "Presence of " + key + " in " + libraries_to_compare_names[library_to_compare_index] + ": " + str(library_presence)
+                #print "Presence of " + key + " in " + libraries_to_compare_names[library_to_compare_index] + ": " + str(library_presence)
 
-			library_of_interest_presence = 1.0*sequence_counts[key]/library_of_interest_total_count
-			comparing_libraries_presence += library_of_interest_presence
+            library_of_interest_presence = 1.0*sequence_counts[key]/library_of_interest_total_count
+            comparing_libraries_presence += library_of_interest_presence
 
-			sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)
-			specificity_dict[key] = sequence_specificity
+            sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)
+            specificity_dict[key] = sequence_specificity
 
-		for libraries_compare_index in range(len(libraries_to_compare_names)):
-			compare_library_name = libraries_to_compare_names[libraries_compare_index]
-			comparing_library = self.sequence_libraries[compare_library_name]
-			comparing_library = comparing_library.get_sequence_counts(by_amino_acid = by_amino_acid, count_threshold = count_threshold)
-			for key in comparing_library:
-				if key not in specificity_dict:
-					specificity_dict[key] = 0
-
-		return specificity_dict
-
-	def get_enrichment(self, library_of_interest_names, starting_library_names,
-		by_amino_acid = True, count_threshold = 10, Log_Scale=True,
-		zero_count_magic_number = 0.9,include_zero_count=False,
-		filter_invalid = True, count_threshold_starting_library = None,
-		count_threshold_library_of_interest = None,
-		include_zero_count_starting_library = None,
-		include_zero_count_library_of_interest = None,
-		zero_count_magic_number_starting_library = None,
-		zero_count_magic_number_library_of_interest = None):
-		
-		if isinstance(library_of_interest_names, list):
-
-			library_of_interest_total_count = 0
-			sequence_counts = {}
-
-			for library_of_interest_name in library_of_interest_names:
-				library_of_interest = self.sequence_libraries[library_of_interest_name]
-				library_of_interest_total_count += library_of_interest.get_total_count()
-				library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
-
-				for sequence, count in library_of_interest_counts.items():
-					if sequence not in sequence_counts:
-						sequence_counts[sequence] = count
-					else:
-						sequence_counts[sequence] += count
-
-			library_of_interest = sequence_counts
-		else:
-			library_of_interest = self.sequence_libraries[library_of_interest_names]
-			library_of_interest_total_count = library_of_interest.get_total_count()
-			library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
-
-		if isinstance(starting_library_names, list):
-
-			aggregate_starting_library = {}
-
-			for starting_library_name in starting_library_names:
-				starting_library = self.sequence_libraries[starting_library_name]
-				starting_library_total_count = starting_library.get_total_count()
-				starting_library = starting_library.get_sequence_counts(by_amino_aci=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
-
-				for sequence, sequence_count in starting_library.items():
-
-					if sequence not in aggregate_starting_library:
-						aggregate_starting_library[sequence] = sequence_count
-					else:
-						aggregate_starting_library[sequence] += sequence_count
-
-			starting_library = aggregate_starting_library
-
-		else:
-			starting_library = self.sequence_libraries[starting_library_names]
-			starting_library_total_count = starting_library.get_total_count()
-			starting_library = starting_library.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
-
-		# If the user has specified separate thresholds for the starting
-		# library and library of interest, we process them separately
-		if count_threshold_starting_library or count_threshold_library_of_interest:
-			if not count_threshold_starting_library:
-				count_threshold_starting_library = count_threshold
-			if not count_threshold_library_of_interest:
-				count_threshold_library_of_interest = count_threshold
-
-			below_threshold_sequences = set()
-
-			for sequence, count in starting_library.items():
-				if count < count_threshold_starting_library:
-					below_threshold_sequences.add(sequence)
-
-			for sequence in below_threshold_sequences:
-				del(starting_library[sequence])
-
-			below_threshold_sequences = set()
-
-			for sequence, count in library_of_interest.items():
-				if count < count_threshold_library_of_interest:
-					below_threshold_sequences.add(sequence)
-
-			for sequence in below_threshold_sequences:
-				del(library_of_interest[sequence])
-
-		else:
-			below_threshold_sequences = set()
-
-			# Find all sequences in the library of interest that are below threshold
-			for sequence, count in library_of_interest.items():
-				if sequence in starting_library:
-					count += starting_library[sequence]
-
-				if count < count_threshold:
-					below_threshold_sequences.add(sequence)
-
-			# Find all sequences in the starting library that are below threshold
-			for sequence, count in starting_library.items():
-				if sequence in library_of_interest:
-					count += library_of_interest[sequence]
-
-				if count < count_threshold:
-					below_threshold_sequences.add(sequence)
+        for libraries_compare_index in range(len(libraries_to_compare_names)):
+            compare_library_name = libraries_to_compare_names[libraries_compare_index]
+            comparing_library = self.sequence_libraries[compare_library_name]
+            comparing_library = comparing_library.get_sequence_counts(by_amino_acid = by_amino_acid, count_threshold = count_threshold)
+            for key in comparing_library:
+                if key not in specificity_dict:
+                    specificity_dict[key] = 0
+
+        return specificity_dict
+
+    def get_enrichment(self, library_of_interest_names, starting_library_names,
+        by_amino_acid = True, count_threshold = 10, Log_Scale=True,
+        zero_count_magic_number = 0.9,include_zero_count=False,
+        filter_invalid = True, count_threshold_starting_library = None,
+        count_threshold_library_of_interest = None,
+        include_zero_count_starting_library = None,
+        include_zero_count_library_of_interest = None,
+        zero_count_magic_number_starting_library = None,
+        zero_count_magic_number_library_of_interest = None):
+        
+        if isinstance(library_of_interest_names, list):
+
+            library_of_interest_total_count = 0
+            sequence_counts = {}
+
+            for library_of_interest_name in library_of_interest_names:
+                library_of_interest = self.sequence_libraries[library_of_interest_name]
+                library_of_interest_total_count += library_of_interest.get_total_count()
+                library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+
+                for sequence, count in library_of_interest_counts.items():
+                    if sequence not in sequence_counts:
+                        sequence_counts[sequence] = count
+                    else:
+                        sequence_counts[sequence] += count
+
+            library_of_interest = sequence_counts
+        else:
+            library_of_interest = self.sequence_libraries[library_of_interest_names]
+            library_of_interest_total_count = library_of_interest.get_total_count()
+            library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+
+        if isinstance(starting_library_names, list):
+
+            aggregate_starting_library = {}
+
+            for starting_library_name in starting_library_names:
+                starting_library = self.sequence_libraries[starting_library_name]
+                starting_library_total_count = starting_library.get_total_count()
+                starting_library = starting_library.get_sequence_counts(by_amino_aci=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+
+                for sequence, sequence_count in starting_library.items():
+
+                    if sequence not in aggregate_starting_library:
+                        aggregate_starting_library[sequence] = sequence_count
+                    else:
+                        aggregate_starting_library[sequence] += sequence_count
+
+            starting_library = aggregate_starting_library
+
+        else:
+            starting_library = self.sequence_libraries[starting_library_names]
+            starting_library_total_count = starting_library.get_total_count()
+            starting_library = starting_library.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+
+        # If the user has specified separate thresholds for the starting
+        # library and library of interest, we process them separately
+        if count_threshold_starting_library != None or count_threshold_library_of_interest != None:
+            if count_threshold_starting_library == None:
+                count_threshold_starting_library = count_threshold
+            if count_threshold_library_of_interest == None:
+                count_threshold_library_of_interest = count_threshold
+
+            below_threshold_sequences = set()
+
+            for sequence, count in starting_library.items():
+                if count < count_threshold_starting_library:
+                    below_threshold_sequences.add(sequence)
+
+            for sequence in below_threshold_sequences:
+                del(starting_library[sequence])
+
+            below_threshold_sequences = set()
+
+            for sequence, count in library_of_interest.items():
+                if count < count_threshold_library_of_interest:
+                    below_threshold_sequences.add(sequence)
+
+            for sequence in below_threshold_sequences:
+                del(library_of_interest[sequence])
+
+        else:
+            below_threshold_sequences = set()
+
+            # Find all sequences in the library of interest that are below threshold
+            for sequence, count in library_of_interest.items():
+                if sequence in starting_library:
+                    count += starting_library[sequence]
+
+                if count < count_threshold:
+                    below_threshold_sequences.add(sequence)
+
+            # Find all sequences in the starting library that are below threshold
+            for sequence, count in starting_library.items():
+                if sequence in library_of_interest:
+                    count += library_of_interest[sequence]
+
+                if count < count_threshold:
+                    below_threshold_sequences.add(sequence)
 
-			# Remove below threshold sequences from both libraries
-			for sequence in below_threshold_sequences:
-				if sequence in library_of_interest:
-					del(library_of_interest[sequence])
-				if sequence in starting_library:
-					del(starting_library[sequence])
+            # Remove below threshold sequences from both libraries
+            for sequence in below_threshold_sequences:
+                if sequence in library_of_interest:
+                    del(library_of_interest[sequence])
+                if sequence in starting_library:
+                    del(starting_library[sequence])
 
-		if zero_count_magic_number_starting_library == None:
-			zero_count_magic_number_starting_library = zero_count_magic_number
-		if include_zero_count_starting_library == None:
-			include_zero_count_starting_library = include_zero_count
+        if zero_count_magic_number_starting_library == None:
+            zero_count_magic_number_starting_library = zero_count_magic_number
+        if include_zero_count_starting_library == None:
+            include_zero_count_starting_library = include_zero_count
 
-		if zero_count_magic_number_library_of_interest == None:
-			zero_count_magic_number_library_of_interest = zero_count_magic_number
-		if include_zero_count_library_of_interest == None:
-			include_zero_count_library_of_interest = include_zero_count
+        if zero_count_magic_number_library_of_interest == None:
+            zero_count_magic_number_library_of_interest = zero_count_magic_number
+        if include_zero_count_library_of_interest == None:
+            include_zero_count_library_of_interest = include_zero_count
 
-		enrichment_dict = {}
-		for sequence in starting_library:
+        enrichment_dict = {}
+        for sequence in starting_library:
 
-			if sequence not in library_of_interest:
-				if include_zero_count_library_of_interest:
-					library_of_interest[sequence] = zero_count_magic_number_library_of_interest
-				else:
-					continue
+            if sequence not in library_of_interest:
+                if include_zero_count_library_of_interest:
+                    library_of_interest[sequence] = zero_count_magic_number_library_of_interest
+                else:
+                    continue
 
-			if (Log_Scale):
-				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
-				enrichment_dict[sequence] = math.log10(fold_enrichment)
-			else:
-				fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
-				enrichment_dict[sequence] = fold_enrichment
+            if (Log_Scale):
+                fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
+                enrichment_dict[sequence] = math.log10(fold_enrichment)
+            else:
+                fold_enrichment = (library_of_interest[sequence]* 1.0 / library_of_interest_total_count) / (starting_library[sequence] * 1.0/ starting_library_total_count)
+                enrichment_dict[sequence] = fold_enrichment
 
-		# For the sequences that don't exist in the starting library
-		if (include_zero_count_starting_library):
-			for sequence in library_of_interest:
+        # For the sequences that don't exist in the starting library
+        if (include_zero_count_starting_library):
+            for sequence in library_of_interest:
 
-				if sequence in starting_library:
-					continue
+                if sequence in starting_library:
+                    continue
 
-				fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number_starting_library / starting_library_total_count)
+                fold_enrichment = (library_of_interest[sequence] * 1.0 / library_of_interest_total_count) / (zero_count_magic_number_starting_library / starting_library_total_count)
 
-				if Log_Scale:
-					enrichment_dict[sequence] = math.log10(fold_enrichment)
-				else:
-					enrichment_dict[sequence] = fold_enrichment
+                if Log_Scale:
+                    enrichment_dict[sequence] = math.log10(fold_enrichment)
+                else:
+                    enrichment_dict[sequence] = fold_enrichment
 
-		return enrichment_dict
+        return enrichment_dict
 
-	def export_enrichment(self, filename, starting_libary_name, \
-		by_amino_acid = False, count_threshold = 0, log_scale = False, filter_invalid = True,
-		include_zero_count = True, zero_count_magic_number = 0.9):
+    def export_enrichment(self, filename, starting_libary_name, \
+        by_amino_acid = False, count_threshold = 0, log_scale = False, filter_invalid = True,
+        include_zero_count = True, zero_count_magic_number = 0.9):
 
-		num_sequence_libraries = len(self.sequence_libraries)
+        num_sequence_libraries = len(self.sequence_libraries)
 
-		cumulative_counts = {}
-		cumulative_enrichments = {}
+        cumulative_counts = {}
+        cumulative_enrichments = {}
 
-		library_index = 0
-		starting_library_index = None
+        library_index = 0
+        starting_library_index = None
 
-		header_row = ['Sequence']
-		if not by_amino_acid:
-			header_row.append('Amino Acid')
-		library_names = []
+        header_row = ['Sequence']
+        if not by_amino_acid:
+            header_row.append('Amino Acid')
+        library_names = []
 
-		for library_name, library in self.sequence_libraries.items():
+        for library_name, library in self.sequence_libraries.items():
 
-			header_row.append(library_name)
-			library_names.append(library_name)
+            header_row.append(library_name)
+            library_names.append(library_name)
 
-			if library_name != starting_libary_name:
-				header_row.append(library_name + ' enrichment')
+            if library_name != starting_libary_name:
+                header_row.append(library_name + ' enrichment')
 
-				if isinstance(starting_libary_name, dict):
-					fold_enrichments = self.get_enrichment(library_name, starting_libary_name[library_name], by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count, zero_count_magic_number = zero_count_magic_number, filter_invalid = filter_invalid)
-				else:
-					fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count,  zero_count_magic_number = zero_count_magic_number, filter_invalid = filter_invalid)
-			else:
-				fold_enrichments = {}
+                if isinstance(starting_libary_name, dict):
+                    fold_enrichments = self.get_enrichment(library_name, starting_libary_name[library_name], by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count, zero_count_magic_number = zero_count_magic_number, filter_invalid = filter_invalid)
+                else:
+                    fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count,  zero_count_magic_number = zero_count_magic_number, filter_invalid = filter_invalid)
+            else:
+                fold_enrichments = {}
 
-			library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+            library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
 
-			# Look through all the counts we got
-			for sequence, sequence_count in library_counts.items():
+            # Look through all the counts we got
+            for sequence, sequence_count in library_counts.items():
 
-				if sequence not in cumulative_counts:
-					cumulative_counts[sequence] = {}
+                if sequence not in cumulative_counts:
+                    cumulative_counts[sequence] = {}
 
-				cumulative_counts[sequence][library_name] = sequence_count
+                cumulative_counts[sequence][library_name] = sequence_count
 
-			# And look through all the enrichments we got
-			for sequence, enrichment in fold_enrichments.items():
+            # And look through all the enrichments we got
+            for sequence, enrichment in fold_enrichments.items():
 
-				if sequence not in cumulative_enrichments:
-					cumulative_enrichments[sequence] = {}
+                if sequence not in cumulative_enrichments:
+                    cumulative_enrichments[sequence] = {}
 
-				cumulative_enrichments[sequence][library_name] = enrichment
+                cumulative_enrichments[sequence][library_name] = enrichment
 
-		data = []
+        data = []
 
-		num_sequences_filtered = 0
+        num_sequences_filtered = 0
 
-		for sequence, sequence_counts in cumulative_counts.items():
+        for sequence, sequence_counts in cumulative_counts.items():
 
-			sequence_row = [sequence]
+            sequence_row = [sequence]
 
-			if not by_amino_acid:
-				sequence_row.append(DNA.translate_dna_single(sequence))
+            if not by_amino_acid:
+                sequence_row.append(DNA.translate_dna_single(sequence))
 
-			if sum(sequence_counts.values()) < count_threshold:
-				num_sequences_filtered += 1
-				continue
+            if sum(sequence_counts.values()) < count_threshold:
+                num_sequences_filtered += 1
+                continue
 
-			library_index = 0
+            library_index = 0
 
-			for library_name in library_names:
+            for library_name in library_names:
 
-				if library_name not in sequence_counts:
-					sequence_row.append(0)
-				else:
-					sequence_row.append(sequence_counts[library_name])
+                if library_name not in sequence_counts:
+                    sequence_row.append(0)
+                else:
+                    sequence_row.append(sequence_counts[library_name])
 
-				if library_name != starting_libary_name:
-					sequence_row.append(cumulative_enrichments[sequence][library_name])
+                if library_name != starting_libary_name:
+                    sequence_row.append(cumulative_enrichments[sequence][library_name])
 
-			data.append(sequence_row)
+            data.append(sequence_row)
 
-		ws.export_csv(filename, header_row, data)
+        ws.export_csv(filename, header_row, data)
 
-	def export_enrichment_specificity(self, filename, starting_libary_name, \
-		libraries_to_compare_names, by_amino_acid = False, \
-		count_threshold = 0):
+    def export_enrichment_specificity(self, filename, starting_libary_name, \
+        libraries_to_compare_names, by_amino_acid = False, \
+        count_threshold = 0):
 
-		num_sequence_libraries = len(self.sequence_libraries)
+        num_sequence_libraries = len(self.sequence_libraries)
 
-		cumulative_counts = {}
-		cumulative_enrichments = {}
-		cumulative_specificities = {}
+        cumulative_counts = {}
+        cumulative_enrichments = {}
+        cumulative_specificities = {}
 
-		library_index = 0
+        library_index = 0
 
-		header_row = ['Sequence']
-		if not by_amino_acid:
-			header_row.append('Amino Acid')
+        header_row = ['Sequence']
+        if not by_amino_acid:
+            header_row.append('Amino Acid')
 
-		for library_name, library in self.sequence_libraries.items():
+        for library_name, library in self.sequence_libraries.items():
 
-			header_row.append(library_name)
-			header_row.append(library_name + ' enrichment')
-			header_row.append(library_name + ' specificity')
+            header_row.append(library_name)
+            header_row.append(library_name + ' enrichment')
+            header_row.append(library_name + ' specificity')
 
-			fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = False)
-			specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid, count_threshold = 0)
-			library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
+            fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = False)
+            specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid, count_threshold = 0)
+            library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
 
-			for sequence, sequence_count in library_counts.items():
+            for sequence, sequence_count in library_counts.items():
 
-				if sequence not in cumulative_counts:
-					cumulative_counts[sequence] = [0] * num_sequence_libraries
-					cumulative_enrichments[sequence] = [0] * num_sequence_libraries
-					cumulative_specificities[sequence] = [0] * num_sequence_libraries
+                if sequence not in cumulative_counts:
+                    cumulative_counts[sequence] = [0] * num_sequence_libraries
+                    cumulative_enrichments[sequence] = [0] * num_sequence_libraries
+                    cumulative_specificities[sequence] = [0] * num_sequence_libraries
 
-				if sequence in fold_enrichments:
-					cumulative_enrichments[sequence][library_index] = fold_enrichments[sequence]
+                if sequence in fold_enrichments:
+                    cumulative_enrichments[sequence][library_index] = fold_enrichments[sequence]
 
-				if sequence in specificities:
-					cumulative_specificities[sequence][library_index] = specificities[sequence]
+                if sequence in specificities:
+                    cumulative_specificities[sequence][library_index] = specificities[sequence]
 
-				cumulative_counts[sequence][library_index] = sequence_count
+                cumulative_counts[sequence][library_index] = sequence_count
 
-			library_index += 1
+            library_index += 1
 
-		data = []
+        data = []
 
-		for sequence, sequence_counts in sorted(cumulative_counts.items(), key=lambda kv: sum(kv[1]), reverse=True):
+        for sequence, sequence_counts in sorted(cumulative_counts.items(), key=lambda kv: sum(kv[1]), reverse=True):
 
-			sequence_row = [sequence]
+            sequence_row = [sequence]
 
-			if not by_amino_acid:
-				sequence_row.append(DNA.translate_dna_single(sequence))
+            if not by_amino_acid:
+                sequence_row.append(DNA.translate_dna_single(sequence))
 
-			if sum(sequence_counts) < count_threshold:
-				continue
+            if sum(sequence_counts) < count_threshold:
+                continue
 
-			library_index = 0
+            library_index = 0
 
-			fold_enrichments = cumulative_enrichments[sequence]
-			specificities = cumulative_specificities[sequence]
+            fold_enrichments = cumulative_enrichments[sequence]
+            specificities = cumulative_specificities[sequence]
 
-			for sequence_count in sequence_counts:
-				sequence_row.append(sequence_count)
-				sequence_row.append(fold_enrichments[library_index])
-				sequence_row.append(specificities[library_index])
-				library_index += 1
+            for sequence_count in sequence_counts:
+                sequence_row.append(sequence_count)
+                sequence_row.append(fold_enrichments[library_index])
+                sequence_row.append(specificities[library_index])
+                library_index += 1
 
-			data.append(sequence_row)
+            data.append(sequence_row)
 
-		ws.export_csv(filename, header_row, data)
+        ws.export_csv(filename, header_row, data)

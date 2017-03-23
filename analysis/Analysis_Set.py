@@ -34,7 +34,9 @@ class Analysis_Set:
     # libraries_to_compare: list of identifiers for the library that you want to compare the specificity against
     #
     # Returns: Nx2 matrix, 1st column is sequence, 2nd column is specificity score
-    def get_specificity(self, library_of_interest_names, libraries_to_compare_names, by_amino_acid = True, count_threshold = 10):
+    def get_specificity(self, library_of_interest_names,
+        libraries_to_compare_names, by_amino_acid = True, count_threshold = 10,
+        log_scale = False, zero_count_magic_number = 0):
 
         specificity_dict={}
 
@@ -83,37 +85,67 @@ class Analysis_Set:
         #print "Comparing to " + str(num_comparing_libraries) + " library(ies)"
         #print "Library of interest total count: " + str(library_of_interest_total_count)
 
+        num_sequences_that_exist_but_have_negative_specificity = 0
+        num_sequences_that_dont_exist_in_libraries_to_compare = 0
+
         for key in sequence_counts:
 
             comparing_libraries_presence = 0
+
+            exists_in_other_library = False
 
             for library_to_compare_index in range(len(libraries_to_compare)):
                 library_to_compare = libraries_to_compare[library_to_compare_index]
 
                 library_presence = 0
                 if key in library_to_compare:
+                    exists_in_other_library = True
                     #print key + " is in! Count: " + str(library_to_compare[key])
                     library_presence = library_to_compare[key] * 1.0 /libraries_to_compare_total_counts[library_to_compare_index]
                     comparing_libraries_presence += library_presence
                 else:
-                    pass
-                    #print key + " is NOT in!"
-
-                #print "Presence of " + key + " in " + libraries_to_compare_names[library_to_compare_index] + ": " + str(library_presence)
+                    library_presence = zero_count_magic_number /libraries_to_compare_total_counts[library_to_compare_index]
 
             library_of_interest_presence = 1.0*sequence_counts[key]/library_of_interest_total_count
             comparing_libraries_presence += library_of_interest_presence
 
-            sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)
-            specificity_dict[key] = sequence_specificity
+            if not exists_in_other_library:
+                num_sequences_that_dont_exist_in_libraries_to_compare += 1
 
-        for libraries_compare_index in range(len(libraries_to_compare_names)):
-            compare_library_name = libraries_to_compare_names[libraries_compare_index]
-            comparing_library = self.sequence_libraries[compare_library_name]
-            comparing_library = comparing_library.get_sequence_counts(by_amino_acid = by_amino_acid, count_threshold = count_threshold)
-            for key in comparing_library:
+            sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)
+
+            if log_scale:
+                specificity_dict[key] = math.log10(sequence_specificity)
+                if math.log10(sequence_specificity) < 0:
+                    num_sequences_that_exist_but_have_negative_specificity += 1
+            else:
+                specificity_dict[key] = sequence_specificity
+
+        print('Of the %i sequences that exist, %i of them have negative specificity, (%f%%)' % (len(sequence_counts), num_sequences_that_exist_but_have_negative_specificity, num_sequences_that_exist_but_have_negative_specificity/len(sequence_counts)))
+        print('And %i of them don\'t exist in the libraries to compare to' % num_sequences_that_dont_exist_in_libraries_to_compare)
+
+        for library_to_compare_index in range(len(libraries_to_compare)):
+            library_to_compare = libraries_to_compare[library_to_compare_index]
+            for key in library_to_compare:
                 if key not in specificity_dict:
-                    specificity_dict[key] = 0
+
+                    library_of_interest_presence = zero_count_magic_number/library_of_interest_total_count
+                    comparing_libraries_presence = library_to_compare[key] / libraries_to_compare_total_counts[library_to_compare_index]
+
+                    for other_library_to_compare_index in range(library_to_compare_index + 1,len(libraries_to_compare)):
+                        other_library_to_compare = libraries_to_compare[other_library_to_compare_index]
+                        if key in other_library_to_compare:
+                            comparing_libraries_presence += other_library_to_compare[key] / libraries_to_compare_total_counts[other_library_to_compare_index]
+                        else:
+                            comparing_libraries_presence += zero_count_magic_number / libraries_to_compare_total_counts[other_library_to_compare_index]
+                    
+                    comparing_libraries_presence += library_of_interest_presence
+                    sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)
+
+                    if log_scale:
+                        specificity_dict[key] = math.log10(sequence_specificity)
+                    else:
+                        specificity_dict[key] = sequence_specificity
 
         return specificity_dict
 
@@ -233,6 +265,14 @@ class Analysis_Set:
             zero_count_magic_number_library_of_interest = zero_count_magic_number
         if include_zero_count_library_of_interest == None:
             include_zero_count_library_of_interest = include_zero_count
+
+        for sequence in starting_library:
+            if sequence not in library_of_interest and include_zero_count_library_of_interest:
+                library_of_interest_total_count += zero_count_magic_number_library_of_interest
+
+        for sequence in library_of_interest:
+            if sequence not in starting_library and include_zero_count_starting_library:
+                starting_library_total_count += zero_count_magic_number_starting_library
 
         enrichment_dict = {}
         for sequence in starting_library:

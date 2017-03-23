@@ -8,6 +8,8 @@ class Alignment(object):
         self._library_templates = library_templates
         self._statistics = statistics
 
+        from . import Database as db
+        
         if id == 0:
             db.add_alignment(self)
         else:

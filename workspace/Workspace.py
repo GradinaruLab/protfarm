@@ -2,6 +2,7 @@ import glob
 import os
 import json
 import importlib
+import subprocess
 from . import Database as db
 
 from fileio import csv_wrapper
@@ -11,9 +12,13 @@ def get_fastq_files():
     raw_data_directory = get_full_path(raw_data_subdirectory)
     mkdir_if_not_exists(raw_data_directory)
 
-    # fastq_files = glob.glob(raw_data_directory + "/*.fastq")
     fastq_files = [file for file in os.listdir(raw_data_directory) \
-        if file.endswith('.fastq')]
+        if file.endswith('.fastq') or file.endswith('fastq.gz')]
+
+    # Truncate the .gz since the user doesn't need to care whether it's a .gz or not
+    for i in range(0, len(fastq_files)):
+        if fastq_files[i].endswith('.gz'):
+            fastq_files[i] = fastq_files[i][:-3]
 
     fastq_files.sort()
 
@@ -87,6 +92,33 @@ def set_workspace_path(new_workspace_path):
 
 def get_raw_data_path(child_path):
     return workspace_path + "/" + raw_data_subdirectory + "/" + child_path
+
+def get_fastq_file(fastq_file_name):
+
+    fastq_file_path = get_raw_data_path(fastq_file_name)
+
+    if os.path.isfile(fastq_file_path):
+        fastq_file = open(fastq_file_path, 'r')
+    elif os.path.isfile(fastq_file_path + '.gz'):
+        gunzip_command = 'gunzip -c ' + fastq_file_path + '.gz > ' + fastq_file_path
+        subprocess.call(gunzip_command, shell=True)
+        fastq_file = open(fastq_file_path, 'r')
+    else:
+        raise Exception("File does not exist!")
+
+    fastq_files[fastq_file_name] = fastq_file
+
+    return fastq_file
+
+def close_fastq_file(fastq_file_name):
+
+    fastq_files[fastq_file_name].close()
+
+    fastq_file_path = get_raw_data_path(fastq_file_name)
+
+    if os.path.isfile(fastq_file_path + '.gz'):
+        remove_command = 'rm ' + fastq_file_path
+        subprocess.call(remove_command, shell=True)
 
 def get_full_path(child_path):
     return workspace_path + "/" + child_path
@@ -232,3 +264,4 @@ aligned_subdirectory = ".aligned"
 export_subdirectory = "export"
 active_alignment = None
 alignment_progress_string = ""
+fastq_files = {}

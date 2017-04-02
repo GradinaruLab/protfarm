@@ -306,6 +306,78 @@ class Analysis_Set:
 
         return enrichment_dict
 
+    def get_sequence_weights(self, library_of_interest_names, starting_library_names,
+        zero_count_magic_number = 0.5,
+        zero_count_magic_number_starting_library = None,
+        zero_count_magic_number_library_of_interest = None,
+        filter_invalid = True,
+        by_amino_acid = True):
+
+        if isinstance(library_of_interest_names, list):
+
+            libraries_of_interest_sequence_counts = {}
+
+            for library_of_interest_name in library_of_interest_names:
+                library_of_interest = self.sequence_libraries[library_of_interest_name]
+                library_of_interest_sequence_counts = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+
+                for sequence, count in library_of_interest_sequence_counts.items():
+                    if sequence not in libraries_of_interest_sequence_counts:
+                        libraries_of_interest_sequence_counts[sequence] = count
+                    else:
+                        libraries_of_interest_sequence_counts[sequence] += count
+
+        else:
+            library_of_interest = self.sequence_libraries[library_of_interest_names]
+            libraries_of_interest_sequence_counts = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+
+        if isinstance(starting_library_names, list):
+
+            starting_libraries_sequence_counts = {}
+
+            for starting_library_name in starting_library_names:
+                starting_library = self.sequence_libraries[starting_library_name]
+                starting_library_sequence_counts = starting_library.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+
+                for sequence, count in starting_library_sequence_counts.items():
+                    if sequence not in starting_libraries_sequence_counts:
+                        starting_libraries_sequence_counts[sequence] = count
+                    else:
+                        starting_libraries_sequence_counts[sequence] += count
+
+        else:
+            starting_library = self.sequence_libraries[starting_library_names]
+            starting_libraries_sequence_counts = starting_library.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+
+        if zero_count_magic_number_library_of_interest is None:
+            zero_count_magic_number_library_of_interest = zero_count_magic_number
+
+        if zero_count_magic_number_starting_library is None:
+            zero_count_magic_number_starting_library = zero_count_magic_number
+
+        sequence_weights = {}
+
+        for sequence, count in libraries_of_interest_sequence_counts.items():
+            sequence_weights[sequence] = count
+
+            if sequence not in starting_libraries_sequence_counts and zero_count_magic_number_starting_library is not None:
+                sequence_weights[sequence] += zero_count_magic_number_starting_library
+
+        for sequence, count in starting_libraries_sequence_counts.items():
+            
+            if sequence not in sequence_weights:
+                sequence_weights[sequence] = count
+            else:
+                sequence_weights[sequence] += count
+
+            if sequence not in libraries_of_interest_sequence_counts and zero_count_magic_number_library_of_interest is not None:
+                sequence_weights[sequence] += zero_count_magic_number_library_of_interest
+
+        for sequence, count in sequence_weights.items():
+            sequence_weights[sequence] = math.log10(count)
+
+        return sequence_weights
+
     def export_enrichment(self, filename, starting_libary_name, \
         by_amino_acid = False, count_threshold = 0, log_scale = False, filter_invalid = True,
         include_zero_count = True, zero_count_magic_number = 0.9):

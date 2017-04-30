@@ -374,7 +374,7 @@ class Analysis_Set:
                 sequence_weights[sequence] += zero_count_magic_number_library_of_interest
 
         for sequence, count in sequence_weights.items():
-            sequence_weights[sequence] = math.log10(count)
+            sequence_weights[sequence] = math.log2(count)
 
         return sequence_weights
 

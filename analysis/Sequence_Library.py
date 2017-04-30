@@ -6,7 +6,6 @@ import itertools
 class Sequence_Library:
 
     # Loads the sequence library file associated with a library
-
     def __init__(self, library):
 
         alignment_file_name = ws.get_alignment_file_name(library, \

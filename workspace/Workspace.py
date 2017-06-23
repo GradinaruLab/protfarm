@@ -207,6 +207,9 @@ def get_active_alignment():
 
     return active_alignment
 
+def get_export_path():
+    return get_full_path(export_subdirectory)
+
 def export_csv(filename, header, data):
 
     export_directory = get_full_path(export_subdirectory)

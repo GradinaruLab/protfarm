@@ -29,6 +29,12 @@ class Alignment(object):
             del self._statistics[library.id]
             db.update_alignment(self)
 
+    def set_statistic(self, library, key, value):
+
+        from . import Database as db
+        self._statistics[library.id][key] = value
+        db.update_alignment(self)
+
     @property
     def name(self):
         return self._name

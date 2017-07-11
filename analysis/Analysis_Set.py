@@ -536,7 +536,7 @@ class Analysis_Set:
 
     def export_enrichment_specificity(self, filename, starting_libary_name, \
         libraries_to_compare_names, by_amino_acid = False, \
-        count_threshold = 0):
+        count_threshold = 0, log_scale = True, include_zero_count = True, zero_count_magic_number = None):
 
         num_sequence_libraries = len(self.sequence_libraries)
 
@@ -556,8 +556,8 @@ class Analysis_Set:
             header_row.append(library_name + ' enrichment')
             header_row.append(library_name + ' specificity')
 
-            fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = False)
-            specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid, count_threshold = 0)
+            fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid = by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count, zero_count_magic_number = zero_count_magic_number)
+            specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid = by_amino_acid, count_threshold = 0, log_scale = log_scale, zero_count_magic_number = zero_count_magic_number)
             library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
 
             for sequence, sequence_count in library_counts.items():

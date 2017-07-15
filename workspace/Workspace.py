@@ -4,10 +4,11 @@ import json
 import importlib
 import subprocess
 from . import Database as db
+from .FASTQ_File import FASTQ_File
 
 from fileio import csv_wrapper
 
-def get_fastq_files():
+def get_fastq_file_names():
 
     raw_data_directory = get_full_path(raw_data_subdirectory)
     mkdir_if_not_exists(raw_data_directory)
@@ -89,6 +90,18 @@ def set_workspace_path(new_workspace_path):
         active_alignment = db.get_active_alignment()
     except:
         active_alignment = None
+
+    current_FASTQ_file_names = get_fastq_file_names()
+
+    database_FASTQ_files = db.get_FASTQ_files()
+
+    for FASTQ_file in database_FASTQ_files:
+        if FASTQ_file.name not in current_FASTQ_file_names:
+            raise Exception("Missing previously existing '%s' FASTQ file!" % FASTQ_file.name)
+        current_FASTQ_file_names.remove(FASTQ_file.name)
+
+    for FASTQ_file_name in current_FASTQ_file_names:
+        new_FASTQ_file = FASTQ_File(FASTQ_file_name)
 
 def get_raw_data_path(child_path):
     return workspace_path + "/" + raw_data_subdirectory + "/" + child_path

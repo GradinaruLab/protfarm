@@ -4,6 +4,7 @@ import os
 from . import Library
 from . import Alignment
 from . import Template
+from . import FASTQ_File
 
 from utils import utils
 
@@ -29,9 +30,6 @@ def load_database(new_path):
         templates_file = open(template_db_path)
         alignments_file = open(alignment_db_path)
 
-
-
-
         library_db = json.load(libraries_file)
         template_db = json.load(templates_file)
         alignment_db = json.load(alignments_file)
@@ -56,6 +54,8 @@ def initialize_empty_database():
 
     library_db["next_library_id"] = 1
     library_db["libraries"] = {}
+    library_db["next_FASTQ_file_id"] = 1
+    library_db["FASTQ_files"] = {}
     template_db["next_template_id"] = 1
     template_db["templates"] = {}
     alignment_db["next_alignment_id"] = 1
@@ -73,6 +73,19 @@ def get_libraries():
         library_objects.append(library_object)
 
     return library_objects
+
+def get_FASTQ_files():
+
+    FASTQ_file_objects = []
+
+    if "FASTQ_files" not in library_db:
+        return []
+
+    for FASTQ_file_id, FASTQ_file in library_db["FASTQ_files"].items():
+        FASTQ_file_object = get_FASTQ_file_object(FASTQ_file_id, FASTQ_file)
+        FASTQ_file_objects.append(FASTQ_file_object)
+
+    return FASTQ_file_objects
 
 def get_associated_library(fastq_file):
 
@@ -135,10 +148,25 @@ def update_library(library):
             library.fastq_files
         update_libraries()
 
+def update_FASTQ_file(FASTQ_file):
+
+    if str(FASTQ_file.id) not in library_db["FASTQ_files"].keys():
+        add_FASTQ_file(FASTQ_file)
+    else:
+        library_db["FASTQ_files"][str(FASTQ_file.id)]["name"] = FASTQ_file.name
+        library_db["FASTQ_files"][str(FASTQ_file.id)]["reverse_complement"] = \
+            FASTQ_file.is_reverse_complement
+        update_libraries()
+
 def get_library_object(library_id, library):
     library_object = Library.Library(library["name"], int(library_id))
     library_object._fastq_files = library["fastq_files"]
     return library_object
+
+def get_FASTQ_file_object(FASTQ_file_id, FASTQ_file):
+    FASTQ_file_object = FASTQ_File.FASTQ_File(FASTQ_file["name"], int(FASTQ_file_id))
+    FASTQ_file_object.is_reverse_complement = FASTQ_file["reverse_complement"]
+    return FASTQ_file_object
 
 def get_template_seed():
     return template_db["next_template_id"]
@@ -220,6 +248,32 @@ def get_alignment_by_id(id):
         raise Exception('No alignment with id \'' + str(id) + '\'')
 
     return get_alignment_object(id, alignment_db["alignments"][str(id)])
+
+def add_FASTQ_file(new_FASTQ_file):
+
+    global library_db
+
+    if "next_FASTQ_file_id" not in library_db:
+        next_FASTQ_file_id = 1
+    else:
+        next_FASTQ_file_id = library_db["next_FASTQ_file_id"]
+
+    if "FASTQ_files" not in library_db:
+        library_db["FASTQ_files"] = {}
+
+    library_db["next_FASTQ_file_id"] = next_FASTQ_file_id + 1
+
+    for existing_FASTQ_file in library_db["FASTQ_files"].values():
+        if existing_FASTQ_file["name"] == new_FASTQ_file.name:
+            raise Exception("Can't add FASTQ file '%s' because existing FASTQ file with that name exists!" % new_FASTQ_file.name)
+
+    library_db["FASTQ_files"][str(next_FASTQ_file_id)] = {}
+    library_db["FASTQ_files"][str(next_FASTQ_file_id)]["name"] = new_FASTQ_file.name
+    library_db["FASTQ_files"][str(next_FASTQ_file_id)]["reverse_complement"] = new_FASTQ_file.is_reverse_complement
+
+    update_libraries()
+
+    new_FASTQ_file._id = next_FASTQ_file_id
 
 def add_alignment(new_alignment):
 

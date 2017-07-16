@@ -1,5 +1,6 @@
 import json
 import os
+import operator
 
 from . import Library
 from . import Alignment
@@ -81,7 +82,7 @@ def get_FASTQ_files():
     if "FASTQ_files" not in library_db:
         return []
 
-    for FASTQ_file_id, FASTQ_file in library_db["FASTQ_files"].items():
+    for FASTQ_file_id, FASTQ_file in sorted(library_db["FASTQ_files"].items(), key=lambda x: x[1]["name"]):
         FASTQ_file_object = get_FASTQ_file_object(FASTQ_file_id, FASTQ_file)
         FASTQ_file_objects.append(FASTQ_file_object)
 
@@ -181,7 +182,7 @@ def get_templates():
 
     template_objects = []
 
-    for template_id, template in template_db["templates"].items():
+    for template_id, template in sorted(template_db["templates"].items()):
         template_object = get_template_object(template_id, template)
         template_objects.append(template_object)
 
@@ -214,14 +215,31 @@ def add_template(new_template):
     template_db["templates"][str(next_template_id)] = {}
     template_db["templates"][str(next_template_id)]["sequence"] = \
         new_template.sequence
+    template_db["templates"][str(next_template_id)]["reverse_complement_template_id"] = new_template.reverse_complement_template_id
 
     update_templates()
 
     new_template._id = next_template_id
 
+
+def update_template(template):
+
+    if str(template.id) not in template_db["templates"].keys():
+        add_template(template)
+    else:
+        template_db["templates"][str(template.id)]["sequence"] = template.sequence
+        template_db["templates"][str(template.id)]["reverse_complement_template_id"] = \
+            template.reverse_complement_template_id
+        update_templates()
+
 def get_template_object(template_id, template):
 
-    template_object = Template.Template(template["sequence"], int(template_id))
+    if "reverse_complement_template_id" in template:
+        reverse_complement_template_id = template["reverse_complement_template_id"]
+    else:
+        reverse_complement_template_id = None
+
+    template_object = Template.Template(template["sequence"], int(template_id), reverse_complement_template_id = reverse_complement_template_id)
     return template_object
 
 def get_alignments():

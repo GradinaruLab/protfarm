@@ -88,6 +88,14 @@ def get_FASTQ_files():
 
     return FASTQ_file_objects
 
+def get_FASTQ_file(name):
+
+    for FASTQ_file_id, FASTQ_file in library_db["FASTQ_files"].items():
+        if name == FASTQ_file["name"]:
+            return get_FASTQ_file_object(FASTQ_file_id, FASTQ_file)
+
+    raise Exception('No FASTQ file found with name \'' + name + '\'')
+
 def get_associated_library(fastq_file):
 
     for library_id, library in library_db["libraries"].items():

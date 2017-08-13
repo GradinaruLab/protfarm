@@ -73,12 +73,17 @@ def set_workspace_path(new_workspace_path):
     workspace_path = new_workspace_path
 
     try:
-        mkdir_if_not_exists(raw_data_subdirectory)
+        mkdir_if_not_exists(os.path.join(workspace_path, raw_data_subdirectory))
     except:
         pass
 
     try:
-        mkdir_if_not_exists(aligned_subdirectory)
+        mkdir_if_not_exists(os.path.join(workspace_path, aligned_subdirectory))
+    except:
+        pass
+
+    try:
+        mkdir_if_not_exists(os.path.join(workspace_path, export_subdirectory))
     except:
         pass
 
@@ -134,7 +139,7 @@ def close_fastq_file(fastq_file_name):
         subprocess.call(remove_command, shell=True)
 
 def get_full_path(child_path):
-    return workspace_path + "/" + child_path
+    return os.path.join(workspace_path, child_path)
 
 def mkdir_if_not_exists(dir):
 

@@ -73,6 +73,8 @@ def get_libraries():
         library_object = get_library_object(library_id, library)
         library_objects.append(library_object)
 
+    library_objects = sorted(library_objects, key=lambda x: x.name)
+
     return library_objects
 
 def get_FASTQ_files():

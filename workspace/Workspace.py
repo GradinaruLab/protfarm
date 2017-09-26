@@ -64,6 +64,42 @@ def remove_library_alignments(library):
     except OSError:
         pass
 
+def cleanup(workspace_path):
+    """Clean up the workspace of any temporary files from an unclean shutdown"""
+
+    raw_data_directory = get_full_path(raw_data_subdirectory)
+    mkdir_if_not_exists(raw_data_directory)
+
+    fastq_files = [file for file in os.listdir(raw_data_directory) \
+        if file.endswith('.fastq')]
+
+    compressed_fastq_files = [file for file in os.listdir(raw_data_directory) \
+        if file.endswith('fastq.gz')]
+
+    # Check if there are any uncompressed files that match a compressed file. If
+    # so we delete the raw data. Otherwise we add it to our list
+
+    for compressed_fastq_file in compressed_fastq_files:
+
+        fastq_file_name = compressed_fastq_file[:-3]
+
+        already_exists = False
+
+        for fastq_file_index in range(0, len(fastq_files)):
+            if fastq_files[fastq_file_index] == fastq_file_name:
+                fastq_file_path = os.path.join(raw_data_directory, \
+                    fastq_file_name)
+                os.remove(fastq_file_path)
+                already_exists = True
+                break
+
+        if not already_exists:
+            fastq_files.append(fastq_file_name)
+
+    fastq_files.sort()
+
+    return fastq_files
+
 def set_workspace_path(new_workspace_path):
     """Set the current workspace path. This is where the db and all other
     files are located"""
@@ -86,6 +122,8 @@ def set_workspace_path(new_workspace_path):
         mkdir_if_not_exists(os.path.join(workspace_path, export_subdirectory))
     except:
         pass
+
+    cleanup(workspace_path)
 
     db.load_database(workspace_path)
 

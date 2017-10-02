@@ -2,11 +2,17 @@ from utils import DNA
 
 class Template(object):
 
-    def __init__(self, sequence, id = 0, reverse_complement_template_id = None):
+    def __init__(self, sequence, name = None, id = 0, \
+        reverse_complement_template_id = None):
 
         from . import Database as db
         self._sequence = sequence
         self._reverse_complement_template_id = None
+
+        if name == None:
+            self._name = sequence
+        else:
+            self._name = name
 
         if id == 0:
             db.add_template(self)
@@ -27,6 +33,10 @@ class Template(object):
         return variant_template
 
     @property
+    def name(self):
+        return self._name
+
+    @property
     def reverse_complement_template_id(self):
         return self._reverse_complement_template_id
 
@@ -36,14 +46,30 @@ class Template(object):
 
     @sequence.setter
     def sequence(self, new_sequence):
+        if new_sequence == self._sequence:
+            return
+
         raise Exception('Can\'t change sequence of a template!')
 
     @property
     def id(self):
         return self._id
 
+    @name.setter
+    def name(self, new_name):
+        if new_name == self._name:
+            return
+
+        self._name = new_name
+
+        from . import Database as db
+        db.update_template(self)
+
     @id.setter
     def id(self, new_id):
+        if new_id == self._id:
+            return
+
         raise Exception('Can\'t change id of a template!')
 
     @reverse_complement_template_id.setter

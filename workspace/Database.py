@@ -12,9 +12,11 @@ from utils import utils
 def load_database(new_path):
 
     global path
+    global metadata
     global library_db
     global template_db
     global alignment_db
+    global metadata_path
     global library_db_path
     global template_db_path
     global alignment_db_path
@@ -22,37 +24,72 @@ def load_database(new_path):
     path = new_path
 
     try:
-        library_db_path = path + '/' + library_db_file_name
-        template_db_path = path + '/' + template_db_file_name
-        alignment_db_path = path + '/' + alignment_db_file_name
+        metadata_path = os.path.join(path, metadata_file_name)
+        library_db_path = os.path.join(path, library_db_file_name)
+        template_db_path = os.path.join(path, template_db_file_name)
+        alignment_db_path = os.path.join(path, alignment_db_file_name)
 
+        if not os.path.exists(metadata_path):
+            initialize_metadata_file()
 
+        metadata_file = open(metadata_path)
         libraries_file = open(library_db_path)
         templates_file = open(template_db_path)
         alignments_file = open(alignment_db_path)
 
+        metadata = json.load(metadata_file)
         library_db = json.load(libraries_file)
         template_db = json.load(templates_file)
         alignment_db = json.load(alignments_file)
+
+        update_database()
 
     except IOError:
         initialize_empty_database()
         return
 
-    libraries_file.close()
-    templates_file.close()
-    alignments_file.close()
+    try:
+        metadata_file.close()
+    except Exception:
+        pass
+    try:
+        libraries_file.close()
+    except Exception:
+        pass
+
+    try:
+        templates_file.close()
+    except Exception:
+        pass
+    
+    try:
+        alignments_file.close()
+    except Exception:
+        pass
+
+def initialize_metadata_file():
+
+    global metadata
+
+    metadata = {}
+
+    metadata["version"] = 0
+
+    update_metadata()
 
 def initialize_empty_database():
 
+    global metadata
     global library_db
     global template_db
     global alignment_db
 
+    metadata = {}
     library_db = {}
     template_db = {}
     alignment_db = {}
 
+    metadata["version"] = LATEST_VERSION
     library_db["next_library_id"] = 1
     library_db["libraries"] = {}
     library_db["next_FASTQ_file_id"] = 1
@@ -204,6 +241,12 @@ def get_template_by_sequence(sequence):
             return get_template_object(template_id, template)
     return None
 
+def get_template_by_name(name):
+    for template_id, template in template_db['templates'].items():
+        if name == template["name"]:
+            return get_template_object(template_id, template)
+    return None
+
 def get_template_by_id(id):
 
     if str(id) not in template_db["templates"].keys():
@@ -218,6 +261,9 @@ def add_template(new_template):
     for template_id, template in template_db["templates"].items():
         if new_template.sequence == template["sequence"]:
             raise Exception('Template already exists!')
+        if new_template.name == template["name"]:
+            raise Exception("Template with name '%s' already exists!" % 
+                new_template.name)
 
     next_template_id = template_db["next_template_id"]
     template_db["next_template_id"] = next_template_id + 1
@@ -226,11 +272,23 @@ def add_template(new_template):
     template_db["templates"][str(next_template_id)]["sequence"] = \
         new_template.sequence
     template_db["templates"][str(next_template_id)]["reverse_complement_template_id"] = new_template.reverse_complement_template_id
+    template_db["templates"][str(next_template_id)]["name"] = new_template.name
 
     update_templates()
 
     new_template._id = next_template_id
 
+def delete_template(template):
+    # Get its reverse complement to set it to null also
+
+    if template.reverse_complement_template_id != None:
+        reverse_complement_template = get_template_by_id(\
+            template.reverse_complement_template_id)
+        reverse_complement_template.reverse_complement_template_id = None
+        
+    del template_db["templates"][str(template.id)]
+
+    update_templates()
 
 def update_template(template):
 
@@ -240,6 +298,7 @@ def update_template(template):
         template_db["templates"][str(template.id)]["sequence"] = template.sequence
         template_db["templates"][str(template.id)]["reverse_complement_template_id"] = \
             template.reverse_complement_template_id
+        template_db["templates"][str(template.id)]["name"] = template.name
         update_templates()
 
 def get_template_object(template_id, template):
@@ -249,7 +308,9 @@ def get_template_object(template_id, template):
     else:
         reverse_complement_template_id = None
 
-    template_object = Template.Template(template["sequence"], int(template_id), reverse_complement_template_id = reverse_complement_template_id)
+    template_object = Template.Template(template["sequence"], id=int(template_id),\
+        name=template["name"], reverse_complement_template_id = reverse_complement_template_id)
+
     return template_object
 
 def get_alignments():
@@ -367,9 +428,23 @@ def get_active_alignment():
 
 def dump_database():
 
+    update_metadata()
     update_libraries()
     update_templates()
     update_alignments()
+
+def update_metadata():
+
+    metadata_temp_file = open(metadata_path + ".tmp", "w")
+
+    json.dump(metadata, metadata_temp_file, indent=4)
+
+    try:
+        os.remove(metadata_path)
+    except OSError:
+        pass
+
+    os.rename(metadata_path + ".tmp", metadata_path)
 
 def update_libraries():
 
@@ -410,6 +485,37 @@ def update_alignments():
 
     os.rename(alignment_db_path + '.tmp', alignment_db_path)
 
+def get_database_version():
+
+    return metadata["version"]
+
+def update_database():
+
+    version = get_database_version()
+
+    while version < LATEST_VERSION:
+
+        update_database_from_version(version)
+        version = get_database_version()
+
+
+def update_database_from_version(current_version):
+
+    if current_version == 0:
+        add_names_to_templates()
+
+    metadata["version"] = current_version + 1
+    update_metadata()
+
+def add_names_to_templates():
+
+    for template_id, template in sorted(template_db["templates"].items()):
+        template_db["templates"][template_id]["name"] = str(template_id)
+
+    update_templates()
+
+LATEST_VERSION = 1
+metadata_file_name = ".db.json"
 library_db_file_name = ".libraries.json"
 template_db_file_name = ".templates.json"
 alignment_db_file_name = ".alignments.json"

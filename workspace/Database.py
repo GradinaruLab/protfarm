@@ -144,7 +144,7 @@ def get_associated_library(fastq_file):
         if fastq_file in library["fastq_files"]:
             return get_library_object(library_id, library)
 
-    raise Exception('FASTQ file doesn\'t exist in any library!')
+    return None
 
 def get_library(name):
 

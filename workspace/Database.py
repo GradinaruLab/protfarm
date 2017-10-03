@@ -102,6 +102,9 @@ def initialize_empty_database():
 
     dump_database()
 
+def get_samples():
+    return get_libraries()
+
 def get_libraries():
 
     library_objects = []
@@ -285,10 +288,16 @@ def delete_template(template):
         reverse_complement_template = get_template_by_id(\
             template.reverse_complement_template_id)
         reverse_complement_template.reverse_complement_template_id = None
-        
+
     del template_db["templates"][str(template.id)]
 
     update_templates()
+
+def delete_sample(sample):
+
+    del library_db["libraries"][str(sample.id)]
+
+    update_libraries()
 
 def update_template(template):
 

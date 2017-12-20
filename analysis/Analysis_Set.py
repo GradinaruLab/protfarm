@@ -538,6 +538,16 @@ class Analysis_Set:
         libraries_to_compare_names, by_amino_acid = False, \
         count_threshold = 0, log_scale = True, include_zero_count = True, zero_count_magic_number = None):
 
+        if starting_libary_name is None:
+            calculate_enrichment = False
+        else:
+            calculate_enrichment = True
+
+        if libraries_to_compare_names is None:
+            calculate_specificity = False
+        else:
+            calculate_specificity = True
+
         num_sequence_libraries = len(self.sequence_libraries)
 
         cumulative_counts = {}
@@ -552,12 +562,21 @@ class Analysis_Set:
 
         for library_name, library in self.sequence_libraries.items():
 
-            header_row.append(library_name)
-            header_row.append(library_name + ' enrichment')
-            header_row.append(library_name + ' specificity')
+            header_row.append(library_name + ' count')
+            if calculate_enrichment:
+                header_row.append(library_name + ' enrichment')
+                fold_enrichments = self.get_enrichment(library_name,
+                                                       starting_libary_name,
+                                                       by_amino_acid=by_amino_acid,
+                                                       count_threshold=0,
+                                                       Log_Scale=log_scale,
+                                                       include_zero_count=include_zero_count,
+                                                       zero_count_magic_number=zero_count_magic_number)
 
-            fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid = by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count, zero_count_magic_number = zero_count_magic_number)
-            specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid = by_amino_acid, count_threshold = 0, log_scale = log_scale, zero_count_magic_number = zero_count_magic_number)
+            if calculate_specificity:
+                header_row.append(library_name + ' specificity')
+                specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid = by_amino_acid, count_threshold = 0, log_scale = log_scale, zero_count_magic_number = zero_count_magic_number)
+
             library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
 
             for sequence, sequence_count in library_counts.items():
@@ -567,10 +586,10 @@ class Analysis_Set:
                     cumulative_enrichments[sequence] = [0] * num_sequence_libraries
                     cumulative_specificities[sequence] = [0] * num_sequence_libraries
 
-                if sequence in fold_enrichments:
+                if calculate_enrichment and sequence in fold_enrichments:
                     cumulative_enrichments[sequence][library_index] = fold_enrichments[sequence]
 
-                if sequence in specificities:
+                if calculate_specificity and sequence in specificities:
                     cumulative_specificities[sequence][library_index] = specificities[sequence]
 
                 cumulative_counts[sequence][library_index] = sequence_count
@@ -591,13 +610,17 @@ class Analysis_Set:
 
             library_index = 0
 
-            fold_enrichments = cumulative_enrichments[sequence]
-            specificities = cumulative_specificities[sequence]
+            if calculate_enrichment:
+                fold_enrichments = cumulative_enrichments[sequence]
+            if calculate_specificity:
+                specificities = cumulative_specificities[sequence]
 
             for sequence_count in sequence_counts:
                 sequence_row.append(sequence_count)
-                sequence_row.append(fold_enrichments[library_index])
-                sequence_row.append(specificities[library_index])
+                if calculate_enrichment:
+                    sequence_row.append(fold_enrichments[library_index])
+                if calculate_specificity:
+                    sequence_row.append(specificities[library_index])
                 library_index += 1
 
             data.append(sequence_row)

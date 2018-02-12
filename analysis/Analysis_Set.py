@@ -538,12 +538,12 @@ class Analysis_Set:
         libraries_to_compare_names, by_amino_acid = False, \
         count_threshold = 0, log_scale = True, include_zero_count = True, zero_count_magic_number = None):
 
-        if starting_libary_name is None:
+        if not starting_libary_name:
             calculate_enrichment = False
         else:
             calculate_enrichment = True
 
-        if libraries_to_compare_names is None:
+        if not libraries_to_compare_names:
             calculate_specificity = False
         else:
             calculate_specificity = True

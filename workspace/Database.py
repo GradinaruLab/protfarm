@@ -1,6 +1,7 @@
 import json
 import os
 import operator
+import shutil
 
 from . import Library
 from . import Alignment
@@ -41,6 +42,11 @@ def load_database(new_path):
         library_db = json.load(libraries_file)
         template_db = json.load(templates_file)
         alignment_db = json.load(alignments_file)
+		
+        metadata_file.close()
+        libraries_file.close()
+        templates_file.close()
+        alignments_file.close()
 
         update_database()
 
@@ -447,52 +453,60 @@ def update_metadata():
     metadata_temp_file = open(metadata_path + ".tmp", "w")
 
     json.dump(metadata, metadata_temp_file, indent=4)
+	
+    metadata_temp_file.close()
 
     try:
         os.remove(metadata_path)
     except OSError:
         pass
 
-    os.rename(metadata_path + ".tmp", metadata_path)
+    shutil.move(metadata_path + ".tmp", metadata_path)
 
 def update_libraries():
 
     libraries_temp_file = open(library_db_path + '.tmp', 'w')
 
     json.dump(library_db, libraries_temp_file, indent=4)
+	
+    libraries_temp_file.close()
 
     try:
         os.remove(library_db_path)
     except OSError:
         pass
 
-    os.rename(library_db_path + '.tmp', library_db_path)
+    shutil.move(library_db_path + '.tmp', library_db_path)
 
 def update_templates():
 
     templates_temp_file = open(template_db_path + '.tmp', 'w')
 
     json.dump(template_db, templates_temp_file, indent=4)
+	
+    templates_temp_file.close()
 
     try:
         os.remove(template_db_path)
     except OSError:
         pass
 
-    os.rename(template_db_path + '.tmp', template_db_path)
+    shutil.move(template_db_path + '.tmp', template_db_path)
 
 def update_alignments():
 
     alignments_temp_file = open(alignment_db_path + '.tmp', 'w')
 
     json.dump(alignment_db, alignments_temp_file, indent=4)
+	
+    alignments_temp_file.close()
 
     try:
         os.remove(alignment_db_path)
     except OSError:
         pass
 
-    os.rename(alignment_db_path + '.tmp', alignment_db_path)
+    shutil.move(alignment_db_path + '.tmp', alignment_db_path)
 
 def get_database_version():
 

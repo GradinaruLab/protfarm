@@ -156,7 +156,7 @@ def get_fastq_file(fastq_file_name):
     if os.path.isfile(fastq_file_path):
         fastq_file = open(fastq_file_path, 'r')
     elif os.path.isfile(fastq_file_path + '.gz'):
-        gunzip_command = 'gunzip -c ' + fastq_file_path + '.gz > ' + fastq_file_path
+        gunzip_command = 'gzip -dk ' + fastq_file_path + '.gz'
         subprocess.call(gunzip_command, shell=True)
         fastq_file = open(fastq_file_path, 'r')
     else:
@@ -173,8 +173,7 @@ def close_fastq_file(fastq_file_name):
     fastq_file_path = get_raw_data_path(fastq_file_name)
 
     if os.path.isfile(fastq_file_path + '.gz'):
-        remove_command = 'rm ' + fastq_file_path
-        subprocess.call(remove_command, shell=True)
+        os.remove(fastq_file_path)
 
 def get_full_path(child_path):
     return os.path.join(workspace_path, child_path)

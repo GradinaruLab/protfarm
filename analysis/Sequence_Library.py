@@ -2,6 +2,7 @@ from utils import DNA
 from workspace import Workspace as ws
 from fileio import csv_wrapper
 import itertools
+import math
 
 class Sequence_Library:
 
@@ -11,8 +12,19 @@ class Sequence_Library:
         alignment_file_name = ws.get_alignment_file_name(library, \
             ws.get_active_alignment())
 
+        print("Reading CSV file for %s" % library.name)
         self._sequence_UUID_counts = csv_wrapper.read_csv_file(\
             alignment_file_name)
+
+        self._has_UUIDs = True
+
+        if len(self._sequence_UUID_counts) > 0:
+            if math.isnan(self._sequence_UUID_counts[0][1]):
+                self._has_UUIDs = False
+
+        print("Read CSV file for %s" % library.name)
+
+
 
     def get_sequence_length(self):
 
@@ -35,28 +47,33 @@ class Sequence_Library:
     def get_sequence_counts(self, by_amino_acid=True, count_threshold=10, filter_invalid=True):
         """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""
 
-        sequence_counts = {}
+        if not by_amino_acid:
+            sequence_counts = {x[0]: x[2] for x in self._sequence_UUID_counts}
+        else:
+            sequence_counts = {}
 
-        for sequence_UUID_count in self._sequence_UUID_counts:
+            for sequence_UUID_count in self._sequence_UUID_counts:
 
-            sequence = sequence_UUID_count[0]
+                sequence = sequence_UUID_count[0]
 
-            if (filter_invalid or by_amino_acid) and sequence.find('N') != -1:
-                continue
-
-            sequence_count = sequence_UUID_count[2]
-
-            if by_amino_acid:
-
-                sequence = DNA.translate_dna_single(sequence)
-
-                if filter_invalid and sequence.find("#") != -1:
+                if (filter_invalid or by_amino_acid) and sequence.find('N') != -1:
                     continue
 
-            if sequence not in sequence_counts:
-                sequence_counts[sequence] = sequence_count
-            else:
-                sequence_counts[sequence] += sequence_count
+                sequence_count = sequence_UUID_count[2]
+
+                if by_amino_acid:
+
+                    sequence = DNA.translate_dna_single(sequence)
+
+                    if filter_invalid and sequence.find("#") != -1:
+                        continue
+
+                if not self._has_UUIDs:
+                    sequence_counts[sequence] = sequence_count
+                elif sequence not in sequence_counts:
+                    sequence_counts[sequence] = sequence_count
+                else:
+                    sequence_counts[sequence] += sequence_count
 
         masked_sequence_counts = {}
         for sequence, sequence_count in sequence_counts.items():

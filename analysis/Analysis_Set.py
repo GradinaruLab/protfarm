@@ -213,14 +213,20 @@ class Analysis_Set:
             library_of_interest = sequence_counts
         else:
             library_of_interest = self.sequence_libraries[library_of_interest_names]
+            print("Getting total count of %s" % library_of_interest_names)
             library_of_interest_total_count = library_of_interest.get_total_count()
+            print("Got total count of %s" % library_of_interest_names)
 
+            print("Getting probability of unseen sequence for %s" % library_of_interest_names)
             if zero_count_magic_number_library_of_interest == None and include_zero_count_library_of_interest:
                 library_of_interest_unseen_probability = statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_names))
             else:
                 library_of_interest_unseen_probability = zero_count_magic_number_library_of_interest
+            print("Got probability of unseen sequence for %s" % library_of_interest_names)
 
+            print("Getting sequence counts of %s" % library_of_interest_names)
             library_of_interest = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
+            print("Got sequence counts of %s" % library_of_interest_names)
 
         if isinstance(starting_library_names, list):
 
@@ -562,22 +568,35 @@ class Analysis_Set:
 
         for library_name, library in self.sequence_libraries.items():
 
+            print("Getting enrichment for %s" % library_name)
+
+            if library_name == starting_libary_name:
+                library_count_threshold = count_threshold
+            else:
+                library_count_threshold = 0
+
             header_row.append(library_name + ' count')
             if calculate_enrichment:
                 header_row.append(library_name + ' enrichment')
                 fold_enrichments = self.get_enrichment(library_name,
                                                        starting_libary_name,
                                                        by_amino_acid=by_amino_acid,
-                                                       count_threshold=0,
+                                                       count_threshold=library_count_threshold,
                                                        Log_Scale=log_scale,
                                                        include_zero_count=include_zero_count,
                                                        zero_count_magic_number=zero_count_magic_number)
+
+            print("Got enrichment for %s" % library_name)
 
             if calculate_specificity:
                 header_row.append(library_name + ' specificity')
                 specificities = self.get_specificity(library_name, libraries_to_compare_names, by_amino_acid = by_amino_acid, count_threshold = 0, log_scale = log_scale, zero_count_magic_number = zero_count_magic_number)
 
+            print("Getting library counts for %s" % library_name)
+
             library_counts = library.get_sequence_counts(by_amino_acid, count_threshold = 0, filter_invalid = False)
+
+            print("Got library counts for %s" % library_name)
 
             for sequence, sequence_count in library_counts.items():
 

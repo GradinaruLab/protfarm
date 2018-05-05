@@ -380,7 +380,7 @@ class Analysis_Set:
                 library_of_interest = self.sequence_libraries[library_of_interest_name]
                 library_of_interest_sequence_counts = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
 
-                if zero_count_magic_number == None:
+                if zero_count_magic_number_library_of_interest == None:
                     library_of_interest_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_name)))
 
                 for sequence, count in library_of_interest_sequence_counts.items():

@@ -140,7 +140,7 @@ def set_workspace_path(new_workspace_path):
 
     for FASTQ_file in database_FASTQ_files:
         if FASTQ_file.name not in current_FASTQ_file_names:
-            raise Exception("Missing previously existing '%s' FASTQ file!" % FASTQ_file.name)
+            continue#raise Exception("Missing previously existing '%s' FASTQ file!" % FASTQ_file.name)
         current_FASTQ_file_names.remove(FASTQ_file.name)
 
     for FASTQ_file_name in current_FASTQ_file_names:

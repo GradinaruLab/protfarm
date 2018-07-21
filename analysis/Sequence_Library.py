@@ -68,9 +68,7 @@ class Sequence_Library:
                     if filter_invalid and sequence.find("#") != -1:
                         continue
 
-                if not self._has_UUIDs:
-                    sequence_counts[sequence] = sequence_count
-                elif sequence not in sequence_counts:
+                if sequence not in sequence_counts:
                     sequence_counts[sequence] = sequence_count
                 else:
                     sequence_counts[sequence] += sequence_count

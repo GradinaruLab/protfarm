@@ -1,10 +1,15 @@
-from analysis.Sequence_Library import Sequence_Library
-import csv
-from utils import DNA
 import math
+import pandas
+import numpy
+
+from analysis.Sequence_Library import Sequence_Library
+from utils import DNA
 from workspace import Workspace as ws
 from workspace import Database as db
 from . import statistics
+from . import confidence
+from . import Label_Type
+
 
 class Analysis_Set:
 
@@ -12,14 +17,24 @@ class Analysis_Set:
 
         self.sequence_libraries = {}
         self.sequence_length = 0
+        self._sample_sequence_counts = None
+        self._sample_total_counts = None
 
     def add_library(self, library):
+
         if isinstance(library,str):
             library = db.get_library(library)
+
+        if library.name in self.sequence_libraries:
+            return
 
         sequence_library = Sequence_Library(library)
         self.sequence_length = sequence_library.get_sequence_length()
         self.sequence_libraries[library.name] = sequence_library
+
+    # Preparing for renaming library -> sample
+    def add_sample(self, sample_name):
+        self.add_library(sample_name)
 
     def get_sequence_length(self, by_amino_acid = True):
 
@@ -30,6 +45,22 @@ class Analysis_Set:
 
     def get_libraries(self):
         return self.sequence_libraries
+
+    def load_sequence_counts(self, count_threshold=0):
+
+        self._sample_sequence_counts = {}
+        self._sample_total_counts = {}
+
+        for sample_name in self.sequence_libraries:
+            sample_counts_dict = self.get_libraries()[sample_name]\
+                .get_sequence_counts(count_threshold=count_threshold)
+
+            sequence_counts = pandas.DataFrame.from_dict(
+                sample_counts_dict, orient="index")
+            sequence_counts.columns = ["%s_count" % sample_name]
+            sequence_counts.sort_index(inplace=True)
+            self._sample_sequence_counts[sample_name] = sequence_counts
+            self._sample_total_counts[sample_name] = sequence_counts.sum()
 
     # libraries_of_interest: list of identifiers for the library that you want the specificity of
     # libraries_to_compare: list of identifiers for the library that you want to compare the specificity against
@@ -154,7 +185,7 @@ class Analysis_Set:
                             comparing_libraries_presence += other_library_to_compare[key] / libraries_to_compare_total_counts[other_library_to_compare_index]
                         else:
                             comparing_libraries_presence += libraries_to_compare_unseen_probabilities[library_to_compare_index] / libraries_to_compare_total_counts[other_library_to_compare_index]
-                    
+
                     comparing_libraries_presence += library_of_interest_presence
                     sequence_specificity = library_of_interest_presence/(comparing_libraries_presence/num_comparing_libraries)
 
@@ -184,7 +215,7 @@ class Analysis_Set:
             zero_count_magic_number_library_of_interest = zero_count_magic_number
         if include_zero_count_library_of_interest == None:
             include_zero_count_library_of_interest = include_zero_count
-        
+
         if isinstance(library_of_interest_names, list):
 
             library_of_interest_total_count = 0
@@ -195,7 +226,7 @@ class Analysis_Set:
                 library_of_interest = self.sequence_libraries[library_of_interest_name]
                 library_of_interest_total_count += library_of_interest.get_total_count()
                 library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
-                
+
                 if zero_count_magic_number_library_of_interest == None and include_zero_count_library_of_interest:
                     library_of_interest_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_name)))
 
@@ -237,7 +268,7 @@ class Analysis_Set:
                 starting_library = self.sequence_libraries[starting_library_name]
                 starting_library_total_count = starting_library.get_total_count()
                 starting_library = starting_library.get_sequence_counts(by_amino_aci=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
-                
+
                 if zero_count_magic_number_starting_library == None and include_zero_count_starting_library:
                     starting_library_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(starting_library_name)))
 
@@ -445,7 +476,7 @@ class Analysis_Set:
                 sequence_weights[sequence] += starting_library_unseen_probability
 
         for sequence, count in starting_libraries_sequence_counts.items():
-            
+
             if sequence not in sequence_weights:
                 sequence_weights[sequence] = count
             else:
@@ -645,3 +676,141 @@ class Analysis_Set:
             data.append(sequence_row)
 
         ws.export_csv(filename, header_row, data)
+
+    def get_sequence_labels_confidences(
+            self,
+            target_samples,
+            starting_sample=None,
+            off_target_samples=None,
+            confidence_metric=confidence.Confidence_Metric.LOG_PROBABILITY,
+            label_type=Label_Type.ENRICHMENT,
+            renormalize_totals=False,
+            target_sample_weights=None,
+            off_target_sample_weights=None,
+            filter_sequences=None):
+
+        if self._sample_sequence_counts is None:
+            raise EnvironmentError("Sample counts not loaded, must call "
+                                   "load_sample_counts before calling "
+                                   "get_sequence_labels_confidences")
+
+        if isinstance(target_samples, str):
+            target_samples = [target_samples]
+
+        if off_target_samples is not None and len(off_target_samples) == 0:
+            off_target_samples = None
+
+        if isinstance(off_target_samples, str):
+            off_target_samples = [off_target_samples]
+
+        if starting_sample is None and label_type in \
+                [Label_Type.ENRICHMENT, Label_Type.ENRICHMENT_SPECIFICITY]:
+            raise ValueError("Must have starting sample unless predicting on "
+                             "counts")
+
+        if off_target_samples is None and label_type in \
+                [Label_Type.SPECIFICITY, Label_Type.ENRICHMENT_SPECIFICITY]:
+            raise ValueError("Must have off target samples if looking at "
+                             "specificity")
+
+        sample_names = set()
+
+        for sample in target_samples:
+            sample_names.add(sample)
+
+        if off_target_samples is not None:
+            for sample in off_target_samples:
+                sample_names.add(sample)
+
+        if starting_sample is not None:
+            sample_names.add(starting_sample)
+
+        count_data_frames = []
+
+        for sample_name in sample_names:
+            count_data_frames.append(self._sample_sequence_counts[sample_name])
+
+        sequence_counts = pandas.concat(count_data_frames, axis=1, sort=True)
+
+        for sample_name in sample_names:
+            sequence_counts["%s_count" % sample_name] = \
+                sequence_counts["%s_count" % sample_name].fillna(
+                    statistics.get_probability_of_unseen_sequence(
+                        db.get_library(sample_name)
+                    )
+                )
+
+        sequence_counts["confidence"] = confidence.get_sequence_confidences(
+            sequence_counts.values,
+            confidence_metric=confidence_metric
+        )
+
+        if label_type == Label_Type.COUNTS:
+            if off_target_samples is not None:
+                raise ValueError("Should not specify off target samples when"
+                                 "looking at counts")
+            labels_confidences = pandas.DataFrame(sequence_counts["confidence"])
+            count_column_names = ["%s_count" % name for name in sample_names]
+            labels_confidences["label"] = \
+                sequence_counts[count_column_names].sum(axis=1)
+            return labels_confidences
+
+        for sample_name in sample_names:
+            if renormalize_totals:
+                sequence_counts["%s_probability" % sample_name] = \
+                    sequence_counts["%s_count" % sample_name] / \
+                    sequence_counts["%s_count" % sample_name].sum()
+            else:
+                sequence_counts["%s_probability" % sample_name] = \
+                    sequence_counts["%s_count" % sample_name] / \
+                    self._sample_total_counts[sample_name].values
+
+        target_count_column_names = \
+            ["%s_probability" % name for name in target_samples]
+
+        sequence_counts["target_probability"] = \
+            sequence_counts[target_count_column_names].mean(axis=1)
+
+        if label_type in \
+                [Label_Type.ENRICHMENT, Label_Type.ENRICHMENT_SPECIFICITY]:
+            sequence_counts["enrichment"] = \
+                numpy.log(sequence_counts["target_probability"] /
+                          sequence_counts["%s_probability" % starting_sample])
+
+        if label_type in \
+                [Label_Type.SPECIFICITY, Label_Type.ENRICHMENT_SPECIFICITY]:
+
+            off_target_count_column_names = \
+                ["%s_probability" % name for name in off_target_samples]
+
+            sequence_counts["off_target_probability"] = \
+                sequence_counts[off_target_count_column_names].mean(axis=1)
+
+            sequence_counts["specificity"] = \
+                numpy.log(sequence_counts["target_probability"] /
+                          sequence_counts["off_target_probability"])
+
+        labels_confidences = pandas.DataFrame(sequence_counts["confidence"])
+
+        if label_type == Label_Type.ENRICHMENT:
+            labels_confidences["label"] = sequence_counts["enrichment"]
+        elif label_type == Label_Type.SPECIFICITY:
+            labels_confidences["label"] = sequence_counts["specificity"]
+        elif label_type == Label_Type.ENRICHMENT_SPECIFICITY:
+            sequence_counts["enrichment"] = sequence_counts["enrichment"] - \
+                sequence_counts["enrichment"].min()
+            sequence_counts["enrichment"] = sequence_counts["enrichment"] / \
+                sequence_counts["enrichment"].max()
+            sequence_counts["specificity"] = sequence_counts["specificity"] - \
+                sequence_counts["specificity"].min()
+            sequence_counts["specificity"] = sequence_counts["specificity"] / \
+                sequence_counts["specificity"].max()
+            labels_confidences["label"] = \
+                sequence_counts["enrichment"] * sequence_counts["specificity"]
+
+        labels_confidences["label"] = labels_confidences["label"] - \
+            labels_confidences["label"].min()
+        labels_confidences["label"] = labels_confidences["label"] / \
+            labels_confidences["label"].max()
+
+        return labels_confidences

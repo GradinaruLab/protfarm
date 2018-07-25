@@ -740,7 +740,7 @@ class Analysis_Set:
                     )
                 )
 
-        sequence_counts["confidence"] = confidence.get_sequence_confidences(
+        sequence_counts["Confidence"] = confidence.get_sequence_confidences(
             sequence_counts.values,
             confidence_metric=confidence_metric
         )
@@ -749,9 +749,9 @@ class Analysis_Set:
             if off_target_samples is not None:
                 raise ValueError("Should not specify off target samples when"
                                  "looking at counts")
-            labels_confidences = pandas.DataFrame(sequence_counts["confidence"])
+            labels_confidences = pandas.DataFrame(sequence_counts["Confidence"])
             count_column_names = ["%s_count" % name for name in sample_names]
-            labels_confidences["label"] = \
+            labels_confidences["Label"] = \
                 sequence_counts[count_column_names].sum(axis=1)
             return labels_confidences
 
@@ -790,12 +790,12 @@ class Analysis_Set:
                 numpy.log(sequence_counts["target_probability"] /
                           sequence_counts["off_target_probability"])
 
-        labels_confidences = pandas.DataFrame(sequence_counts["confidence"])
+        labels_confidences = pandas.DataFrame(sequence_counts["Confidence"])
 
         if label_type == Label_Type.ENRICHMENT:
-            labels_confidences["label"] = sequence_counts["enrichment"]
+            labels_confidences["Label"] = sequence_counts["enrichment"]
         elif label_type == Label_Type.SPECIFICITY:
-            labels_confidences["label"] = sequence_counts["specificity"]
+            labels_confidences["Label"] = sequence_counts["specificity"]
         elif label_type == Label_Type.ENRICHMENT_SPECIFICITY:
             sequence_counts["enrichment"] = sequence_counts["enrichment"] - \
                 sequence_counts["enrichment"].min()
@@ -805,12 +805,16 @@ class Analysis_Set:
                 sequence_counts["specificity"].min()
             sequence_counts["specificity"] = sequence_counts["specificity"] / \
                 sequence_counts["specificity"].max()
-            labels_confidences["label"] = \
+            labels_confidences["Label"] = \
                 sequence_counts["enrichment"] * sequence_counts["specificity"]
 
-        labels_confidences["label"] = labels_confidences["label"] - \
-            labels_confidences["label"].min()
-        labels_confidences["label"] = labels_confidences["label"] / \
-            labels_confidences["label"].max()
+        labels_confidences["Label"] = labels_confidences["Label"] - \
+            labels_confidences["Label"].min()
+        labels_confidences["Label"] = labels_confidences["Label"] / \
+            labels_confidences["Label"].max()
+
+        for sample_name in sample_names:
+            labels_confidences["%s_count" % sample_name] = \
+                sequence_counts["%s_count" % sample_name]
 
         return labels_confidences

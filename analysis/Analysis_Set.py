@@ -745,15 +745,15 @@ class Analysis_Set:
             confidence_metric=confidence_metric
         )
 
-        if label_type == Label_Type.COUNTS:
+        labels_confidences = pandas.DataFrame(sequence_counts["Confidence"])
+
+        if label_type == Label_Type.LOG_COUNTS:
             if off_target_samples is not None:
                 raise ValueError("Should not specify off target samples when"
                                  "looking at counts")
-            labels_confidences = pandas.DataFrame(sequence_counts["Confidence"])
             count_column_names = ["%s_count" % name for name in sample_names]
             labels_confidences["Label"] = \
-                sequence_counts[count_column_names].sum(axis=1)
-            return labels_confidences
+                numpy.log(sequence_counts[count_column_names].sum(axis=1))
 
         for sample_name in sample_names:
             if renormalize_totals:
@@ -789,8 +789,6 @@ class Analysis_Set:
             sequence_counts["specificity"] = \
                 numpy.log(sequence_counts["target_probability"] /
                           sequence_counts["off_target_probability"])
-
-        labels_confidences = pandas.DataFrame(sequence_counts["Confidence"])
 
         if label_type == Label_Type.ENRICHMENT:
             labels_confidences["Label"] = sequence_counts["enrichment"]

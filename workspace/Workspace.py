@@ -5,6 +5,7 @@ import importlib
 import subprocess
 from . import Database as db
 from .FASTQ_File import FASTQ_File
+import sys
 
 from fileio import csv_wrapper
 
@@ -99,6 +100,20 @@ def cleanup(workspace_path):
     fastq_files.sort()
 
     return fastq_files
+
+
+def set_experiment(experiment_name):
+
+    if "LIBRARY_PATH" not in os.environ:
+        raise EnvironmentError("VIRUS_FARM_LIBRARY_PATH not defined as an "
+                               "environment variable.")
+
+    library_path = os.environ["VIRUS_FARM_LIBRARY_PATH"]
+
+    new_workspace_path = os.path.join(library_path, experiment_name)
+
+    set_workspace_path(new_workspace_path)
+
 
 def set_workspace_path(new_workspace_path):
     """Set the current workspace path. This is where the db and all other

@@ -111,13 +111,29 @@ def initialize_empty_database():
 def get_samples():
     return get_libraries()
 
-def get_libraries():
+
+def get_libraries(metadata_filter=None):
+
+    if metadata_filter is None:
+        metadata_filter = {}
 
     library_objects = []
 
     for library_id, library in library_db["libraries"].items():
         library_object = get_library_object(library_id, library)
-        library_objects.append(library_object)
+
+        passes_filter = True
+
+        for key, value in metadata_filter.items():
+            if key not in library_object.metadata:
+                passes_filter = False
+                break
+            if library_object.metadata[key] != value:
+                passes_filter = False
+                break
+
+        if passes_filter:
+            library_objects.append(library_object)
 
     library_objects = sorted(library_objects, key=lambda x: x.name)
 
@@ -181,6 +197,7 @@ def add_library(new_library):
     library_db["libraries"][str(next_library_id)] = {}
     library_db["libraries"][str(next_library_id)]["name"] = new_library.name
     library_db["libraries"][str(next_library_id)]["fastq_files"] = []
+    library_db["libraries"][str(next_library_id)]["metadata"] = {}
 
     update_libraries()
 
@@ -203,6 +220,7 @@ def update_library(library):
         library_db["libraries"][str(library.id)]["name"] = library.name
         library_db["libraries"][str(library.id)]["fastq_files"] = \
             library.fastq_files
+        library_db["libraries"][str(library.id)]["metadata"] = library.metadata
         update_libraries()
 
 def update_FASTQ_file(FASTQ_file):
@@ -218,6 +236,8 @@ def update_FASTQ_file(FASTQ_file):
 def get_library_object(library_id, library):
     library_object = Library.Library(library["name"], int(library_id))
     library_object._fastq_files = library["fastq_files"]
+    if "metadata" in library:
+        library_object._metadata = library["metadata"]
     return library_object
 
 def get_FASTQ_file_object(FASTQ_file_id, FASTQ_file):

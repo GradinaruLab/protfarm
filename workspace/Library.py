@@ -2,12 +2,13 @@ import os
 
 class Library(object):
 
-    def __init__(self, name, id = 0):
+    def __init__(self, name, id=0):
 
         from . import Database as db
 
         self._fastq_files = []
         self._name = name
+        self._metadata = {}
 
         if id == 0:
             db.add_library(self)
@@ -75,3 +76,14 @@ class Library(object):
     @id.setter
     def id(self, new_id):
         raise Exception('Can\'t change id of a library!')
+
+    @property
+    def metadata(self):
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, new_metadata):
+
+        from . import Database as db
+        self._metadata = new_metadata
+        db.update_library(self)

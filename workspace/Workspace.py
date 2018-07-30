@@ -102,13 +102,17 @@ def cleanup(workspace_path):
     return fastq_files
 
 
-def set_experiment(experiment_name):
+def set_experiment(new_experiment_name):
 
-    if "LIBRARY_PATH" not in os.environ:
+    if "VIRUS_FARM_LIBRARY_PATH" not in os.environ:
         raise EnvironmentError("VIRUS_FARM_LIBRARY_PATH not defined as an "
                                "environment variable.")
 
     library_path = os.environ["VIRUS_FARM_LIBRARY_PATH"]
+
+    global experiment_name
+
+    experiment_name = new_experiment_name
 
     new_workspace_path = os.path.join(library_path, experiment_name)
 
@@ -343,3 +347,4 @@ export_subdirectory = "export"
 active_alignment = None
 alignment_progress_string = ""
 fastq_files = {}
+experiment_name = None

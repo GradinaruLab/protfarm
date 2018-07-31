@@ -29,12 +29,20 @@ def get_samples(metadata_filter):
         if sample["fields"]["Experiment"][0] != current_experiment["id"]:
             continue
 
+        passes_filter = True
+
         for key, value in metadata_filter.items():
 
             if key not in sample["fields"]:
+                passes_filter = False
                 break
-            if sample["fields"][key] == value:
-                sample_names.append(sample["fields"]["Name"])
+
+            if sample["fields"][key] != value:
+                passes_filter = False
+                break
+
+        if passes_filter:
+            sample_names.append(sample["fields"]["Name"])
 
     return sample_names
 

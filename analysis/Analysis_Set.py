@@ -687,7 +687,8 @@ class Analysis_Set:
             renormalize_totals=False,
             target_sample_weights=None,
             off_target_sample_weights=None,
-            filter_sequences=None):
+            filter_sequences=None,
+            exclude_sequences=None):
 
         if self._sample_sequence_counts is None:
             raise EnvironmentError("Sample counts not loaded, must call "
@@ -731,6 +732,12 @@ class Analysis_Set:
             count_data_frames.append(self._sample_sequence_counts[sample_name])
 
         sequence_counts = pandas.concat(count_data_frames, axis=1, sort=True)
+
+        if exclude_sequences is not None:
+            for sequence in exclude_sequences:
+                if sequence not in sequence_counts.index:
+                    continue
+                sequence_counts.drop(sequence, inplace=True)
 
         for sample_name in sample_names:
             sequence_counts["%s_count" % sample_name] = \

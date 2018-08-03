@@ -688,6 +688,7 @@ class Analysis_Set:
             target_sample_weights=None,
             off_target_sample_weights=None,
             filter_sequences=None,
+            standardize=False,
             exclude_sequences=None):
 
         if self._sample_sequence_counts is None:
@@ -813,10 +814,17 @@ class Analysis_Set:
             labels_confidences["Label"] = \
                 sequence_counts["enrichment"] * sequence_counts["specificity"]
 
-        labels_confidences["Label"] = labels_confidences["Label"] - \
-            labels_confidences["Label"].min()
-        labels_confidences["Label"] = labels_confidences["Label"] / \
-            labels_confidences["Label"].max()
+        if standardize:
+            labels_confidences["Label"] -= \
+                labels_confidences["Label"].mean()
+            labels_confidences["Label"] /= \
+                labels_confidences["Label"].std()
+        else:
+
+            labels_confidences["Label"] = labels_confidences["Label"] - \
+                labels_confidences["Label"].min()
+            labels_confidences["Label"] = labels_confidences["Label"] / \
+                labels_confidences["Label"].max()
 
         for sample_name in sample_names:
             labels_confidences["%s_count" % sample_name] = \

@@ -24,8 +24,6 @@ class Sequence_Library:
 
         print("Read CSV file for %s" % library.name)
 
-
-
     def get_sequence_length(self):
 
         return len(self._sequence_UUID_counts[0][0])

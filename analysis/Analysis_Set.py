@@ -36,7 +36,7 @@ class Analysis_Set:
     def add_sample(self, sample_name):
         self.add_library(sample_name)
 
-    def get_sequence_length(self, by_amino_acid = True):
+    def get_sequence_length(self, by_amino_acid=True):
 
         if by_amino_acid:
             return int(self.sequence_length / 3)

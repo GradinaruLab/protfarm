@@ -15,6 +15,10 @@ pip install pandas
 pip install matplotlib
 pip install seaborn
 pip install biopython
+pip install torch
+pip install airtable-python-wrapper
+pip install git+https://github.com/cornellius-gp/gpytorch.git
+pip install h5py
 ```
 
 For ubuntu, also:

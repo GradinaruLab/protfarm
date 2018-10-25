@@ -15,9 +15,9 @@ pip install pandas
 pip install matplotlib
 pip install seaborn
 pip install biopython
-pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html 
+pip install torch 
 pip install airtable-python-wrapper
-pip install git+https://github.com/cornellius-gp/gpytorch.git
+pip install git+https://github.com/cornellius-gp/gpytorch.git@alpha
 pip install h5py
 ```
 

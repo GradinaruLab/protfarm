@@ -175,8 +175,10 @@ def get_fastq_file(fastq_file_name):
     if os.path.isfile(fastq_file_path):
         fastq_file = open(fastq_file_path, 'r')
     elif os.path.isfile(fastq_file_path + '.gz'):
-        gunzip_command = 'gzip -dk ' + fastq_file_path + '.gz'
-        subprocess.call(gunzip_command, shell=True)
+        gunzip_command = 'gzip -dc ' + fastq_file_path + '.gz'
+        output_file = open(fastq_file_path, "wb")
+        subprocess.call(gunzip_command, shell=True, stdout=output_file)
+        output_file.close()
         fastq_file = open(fastq_file_path, 'r')
     else:
         raise Exception("File does not exist!")

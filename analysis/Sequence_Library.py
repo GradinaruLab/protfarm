@@ -19,7 +19,9 @@ class Sequence_Library:
         self._has_UUIDs = True
 
         if len(self._sequence_UUID_counts) > 0:
-            if math.isnan(self._sequence_UUID_counts[0][1]):
+            if isinstance(self._sequence_UUID_counts[0][1], str):
+                self._has_UUIDS = True
+            elif math.isnan(self._sequence_UUID_counts[0][2]):
                 self._has_UUIDs = False
 
         print("Read CSV file for %s" % library.name)
@@ -42,44 +44,104 @@ class Sequence_Library:
     def sequence_UUID_counts(self):
         return self._sequence_UUID_counts
 
-    def get_sequence_counts(self, by_amino_acid=True, count_threshold=10, filter_invalid=True):
+    def get_sequence_counts(self, by_amino_acid=True, count_threshold=10, filter_invalid=True, ignore_UUIDs=False):
         """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""
 
         if not by_amino_acid:
-            sequence_counts = {x[0]: x[2] for x in self._sequence_UUID_counts}
+
+            sequence_counts = {}
+            
+            if len(self._sequence_UUID_counts[0][1]) == 0 or ignore_UUIDs:
+
+                for sequence_UUID_count in self._sequence_UUID_counts:
+
+                    sequence = sequence_UUID_count[0]
+
+                    if sequence not in sequence_counts:
+                        sequence_counts[sequence] = sequence_UUID_count[2]
+                    else:
+                        sequence_counts[sequence] += sequence_UUID_count[2]
+                        
+            else:
+                for sequence_UUID_count in self._sequence_UUID_counts:
+
+                    sequence = sequence_UUID_count[0]
+
+                    if sequence not in sequence_counts:
+                        sequence_counts[sequence] = 1
+                    else:
+                        sequence_counts[sequence] += 1
+
+            filtered_sequence_counts = {}
+
+            for sequence, sequence_count in sequence_counts.items():
+
+                if sequence_count < count_threshold:
+                    pass
+                else:
+                    filtered_sequence_counts[sequence] = sequence_count
+                    
+            return filtered_sequence_counts
         else:
             sequence_counts = {}
+            
+            if len(self._sequence_UUID_counts[0][1]) == 0 or ignore_UUIDs:
 
-            for sequence_UUID_count in self._sequence_UUID_counts:
+                for sequence_UUID_count in self._sequence_UUID_counts:
 
-                sequence = sequence_UUID_count[0]
+                    sequence = sequence_UUID_count[0]
 
-                if (filter_invalid or by_amino_acid) and sequence.find('N') != -1:
-                    continue
-
-                sequence_count = sequence_UUID_count[2]
-
-                if by_amino_acid:
-
-                    sequence = DNA.translate_dna_single(sequence)
-
-                    if filter_invalid and sequence.find("#") != -1:
+                    if (filter_invalid or by_amino_acid) and sequence.find('N') != -1:
                         continue
 
-                if sequence not in sequence_counts:
-                    sequence_counts[sequence] = sequence_count
-                else:
-                    sequence_counts[sequence] += sequence_count
+                    sequence_count = sequence_UUID_count[2]
 
-        masked_sequence_counts = {}
-        for sequence, sequence_count in sequence_counts.items():
+                    if by_amino_acid:
 
-            if sequence_count < count_threshold:
-                pass
+                        sequence = DNA.translate_dna_single(sequence)
+
+                        if filter_invalid and sequence.find("#") != -1:
+                            continue
+
+                    if sequence not in sequence_counts:
+                        sequence_counts[sequence] = sequence_count
+                    else:
+                        sequence_counts[sequence] += sequence_count
             else:
-                masked_sequence_counts[sequence] = sequence_count
 
-        return masked_sequence_counts
+                for sequence_UUID_count in self._sequence_UUID_counts:
+
+                    sequence = sequence_UUID_count[0]
+
+                    if (filter_invalid or by_amino_acid) and sequence.find('N') != -1:
+                        continue
+
+                    sequence_count = 1
+
+                    if by_amino_acid:
+
+                        sequence = DNA.translate_dna_single(sequence)
+
+                        if filter_invalid and sequence.find("#") != -1:
+                            continue
+
+                    if sequence not in sequence_counts:
+                        sequence_counts[sequence] = sequence_count
+                    else:
+                        sequence_counts[sequence] += sequence_count
+
+        if count_threshold > 1:
+            masked_sequence_counts = {}
+            for sequence, sequence_count in sequence_counts.items():
+
+                if sequence_count < count_threshold:
+                    pass
+                else:
+                    masked_sequence_counts[sequence] = sequence_count
+
+            return masked_sequence_counts
+        else:
+            return sequence_counts
 
     def eliminate_bias(self,predicted_bias_percentage,num_nucleotides_off):
         """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""
@@ -142,8 +204,12 @@ class Sequence_Library:
 
     def sequence_comparable(sequence_to_compare,sequence_to_be_compared_to,threshold):
         """Returns true if two string are comparable given user defined threshold"""
-        sequence_letter_difference = sum(1 for x,y in zip(sequence_to_compare, sequence_to_be_compared_to) if x != y)
-        if (sequence_letter_difference <= threshold):
-            return True
-        else:
-            return False
+        
+        distance = 0
+        
+        for i in range(len(sequence_to_compare)):
+            if sequence_to_compare[i] != sequence_to_be_compared_to[i]:
+                distance += 1
+            if distance > threshold:
+                return False
+        return True

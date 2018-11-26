@@ -69,4 +69,6 @@ class Alignment(object):
 
     @library_templates.setter
     def library_templates(self, new_library_templates):
-        raise Exception('You can\'t do that!')
+        self._library_templates = new_library_templates
+        from . import Database as db
+        db.update_alignment(self)

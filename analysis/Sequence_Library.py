@@ -3,6 +3,9 @@ from workspace import Workspace as ws
 from fileio import csv_wrapper
 import itertools
 import math
+import pandas
+import numpy
+from utils import Sequence_Trie
 
 class Sequence_Library:
 
@@ -143,64 +146,86 @@ class Sequence_Library:
         else:
             return sequence_counts
 
-    def eliminate_bias(self,predicted_bias_percentage,num_nucleotides_off):
-        """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""
+    def eliminate_bias(self, predicted_bias_percentage=0.01, num_nucleotides_off=1, use_UIDs=False):
 
-        print('Eliminating bias from ' + str(len(self._sequence_UUID_counts)) + ' sequences')
-        # Initialize variables
-        filtered_sequences = []
-        current_high_count_sequence = 0;
+        if num_nucleotides_off != 1:
+            raise NotImplementedError("Only support single nucleotide errors")
 
+        if use_UIDs:
+            raise NotImplementedError("Currently ignoring UIDs in eliminate bias")
+
+        print("Getting sequence counts")
         # Get a dictionary of unique sequences and their respective counts
-        sequence_dict = self.get_sequence_counts(False,0,True)
+        sequence_count_dict = self.get_sequence_counts(by_amino_acid=False, count_threshold=0, filter_invalid=True)
 
-        #Generate an ordered list
-        sorted_sequence_list = sorted(sequence_dict.items(),key=lambda x: x[1], reverse=True)
+        print("Converting sequence counts to sorted lists")
+        sequence_counts = pandas.DataFrame.from_dict(sequence_count_dict, orient="index")
+        sequence_counts.columns = ["count"]
+        sequence_counts.sort_values(by="count", ascending=True, inplace=True)
 
+        sequences = list(sequence_counts.index)
+        counts = numpy.array(sequence_counts["count"].values)
 
-        #Iterate through the list and eliminate sequences with bias
-        counter = 0
-        num_filtered = 0
-        duplicate_indices = 0
-        list_of_sequence_indices_to_delete = set() #make it a set since you might have duplicates
-        for sequence_index in range(len(sorted_sequence_list)):
-            # avoids counting sequences that would yield count*percentage less than 1 (there is no sequences less than 0.99)
-            if sorted_sequence_list[sequence_index][1] * predicted_bias_percentage < 1:
-                break
-            else:       
-                current_sequence_compare_value = predicted_bias_percentage*sorted_sequence_list[sequence_index][1]
-                current_sequence = sorted_sequence_list[sequence_index][0]
-                counter = counter + 1
-                #print('Sequence under test is '+current_sequence) 
-                #print('Sequence value under test is '+str(current_sequence_compare_value))  
-                
-                for sequence_under_test_index in range(len(sorted_sequence_list) - counter):
-                    if (Sequence_Library.sequence_comparable(sorted_sequence_list[sequence_under_test_index+counter][0],current_sequence,num_nucleotides_off)):                 
-                        if (sorted_sequence_list[sequence_under_test_index+counter][1] <= current_sequence_compare_value):
-                            if sequence_under_test_index+counter in list_of_sequence_indices_to_delete:
-                                duplicate_indices = duplicate_indices + 1
-                            # DEBUG #
-                            # print('Sequence with high count is '+current_sequence)
-                            # print('High count sequence value is '+str(sorted_sequence_list[sequence_index][1]))
-                            # print('The sequence that is the bias of the high count sequence is '+sorted_sequence_list[sequence_under_test_index+counter][0])
-                            # print('That sequence value is '+str(sorted_sequence_list[sequence_under_test_index+counter][1]))
-                            num_filtered = num_filtered + 1
-                            # END DEBUG #
-                            list_of_sequence_indices_to_delete.add(sequence_under_test_index+counter)
+        print("Building sequence trie")
+        sequence_trie = Sequence_Trie(by_nucleotide=True)
+        for sequence, count in zip(sequences, counts):
+            sequence_trie.add(sequence, count)
 
+        alphabet = set(DNA.get_nucleotides())
 
-        # print(str(len(list_of_sequence_indices_to_delete)))
-        # print(str(duplicate_indices))        
-        # Reverse sort the set 
-        list_of_sequence_indices_to_delete = sorted(list_of_sequence_indices_to_delete,reverse=True)
-        for bad_sequence_index in list_of_sequence_indices_to_delete:
-            del sorted_sequence_list[bad_sequence_index]
+        for sequence_index, sequence in enumerate(sequences):
+
+            if sequence_index % 10000 == 0:
+                print("Analyzing sequence %i" % sequence_index)
+
+            count = counts[sequence_index]
+
+            min_parent_count = math.floor(count * (1 / predicted_bias_percentage))
+
+            parent_counts = []
+
+            # Find all possible parent sequences
+            for index, character in enumerate(sequence):
+
+                prefix = sequence[0:index]
+
+                parent_node = sequence_trie.get_node(prefix)
+
+                if parent_node is None:
+                    continue
+
+                for other_character in alphabet.difference(character):
+
+                    postfix = other_character + sequence[index + 1:]
+
+                    parent_count = parent_node.get_value(postfix)
+
+                    if parent_count is None:
+                        continue
+                    elif parent_count < min_parent_count:
+                        continue
+
+                    parent_counts.append((prefix + postfix, parent_count))
+
+            if len(parent_counts) > 0:
+
+                parent_count_sum = 0
+
+                for parent, parent_count in parent_counts:
+                    parent_count_sum += parent_count
+
+                for parent, parent_count in parent_counts:
+                    count_to_add = parent_count / parent_count_sum * count
+                    #             print("Adding '%.2f' to parent '%s' from '%s'" % (count_to_add, parent, sequence))
+                    sequence_trie.add(parent, parent_count + count_to_add)
+                sequence_trie.add(sequence, 0)
 
         self._sequence_UUID_counts = []
-        for index in range(len(sorted_sequence_list)):
-            self._sequence_UUID_counts.append([sorted_sequence_list[index][0], '', sorted_sequence_list[index][1]])
 
-        print(str(len(self._sequence_UUID_counts)) + ' sequences remaining after filtering')
+        for sequence in sequences:
+            new_sequence_count = sequence_trie.get_value(sequence)
+            if new_sequence_count > 0:
+                self._sequence_UUID_counts.append((sequence, "", new_sequence_count))
 
     def sequence_comparable(sequence_to_compare,sequence_to_be_compared_to,threshold):
         """Returns true if two string are comparable given user defined threshold"""

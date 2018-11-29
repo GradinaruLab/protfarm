@@ -755,13 +755,15 @@ class Analysis_Set:
 
         labels_confidences = pandas.DataFrame(sequence_counts["Confidence"])
 
-        if label_type == Label_Type.LOG_COUNTS:
+        if label_type in [Label_Type.LOG_COUNTS, Label_Type.RAW]:
             if off_target_samples is not None:
                 raise ValueError("Should not specify off target samples when"
                                  "looking at counts")
             count_column_names = ["%s_count" % name for name in sample_names]
-            labels_confidences["Label"] = \
-                numpy.log(sequence_counts[count_column_names].sum(axis=1))
+            labels_confidences["Label"] = sequence_counts[count_column_names].sum(axis=1)
+
+            if label_type == Label_Type.LOG_COUNTS:
+                labels_confidences["Label"] = numpy.log(labels_confidences["Label"])
 
         for sample_name in sample_names:
             if renormalize_totals:

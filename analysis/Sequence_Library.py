@@ -50,11 +50,14 @@ class Sequence_Library:
     def get_sequence_counts(self, by_amino_acid=True, count_threshold=10, filter_invalid=True, ignore_UUIDs=False):
         """Returns an Nx2 matrix, 1st column is sequence, 2nd column is count"""
 
+        if not self._has_UUIDs:
+            ignore_UUIDs = True
+
         if not by_amino_acid:
 
             sequence_counts = {}
             
-            if len(self._sequence_UUID_counts[0][1]) == 0 or ignore_UUIDs:
+            if ignore_UUIDs:
 
                 for sequence_UUID_count in self._sequence_UUID_counts:
 
@@ -88,7 +91,7 @@ class Sequence_Library:
         else:
             sequence_counts = {}
             
-            if len(self._sequence_UUID_counts[0][1]) == 0 or ignore_UUIDs:
+            if ignore_UUIDs:
 
                 for sequence_UUID_count in self._sequence_UUID_counts:
 

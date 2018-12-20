@@ -19,12 +19,12 @@ class Sequence_Library:
         self._sequence_UUID_counts = csv_wrapper.read_csv_file(\
             alignment_file_name)
 
-        self._has_UUIDs = True
+        self._has_UUIDs = False
 
         if len(self._sequence_UUID_counts) > 0:
             if isinstance(self._sequence_UUID_counts[0][1], str):
                 self._has_UUIDS = True
-            elif math.isnan(self._sequence_UUID_counts[0][2]):
+            elif math.isnan(self._sequence_UUID_counts[0][1]):
                 self._has_UUIDs = False
 
         print("Read CSV file for %s" % library.name)

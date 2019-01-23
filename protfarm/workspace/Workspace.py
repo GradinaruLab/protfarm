@@ -1,7 +1,7 @@
 import os
 import subprocess
 from . import Database as db
-from .FASTQ_File import FASTQ_File
+from . import FASTQ_File
 
 from peseq.fileio import csv_wrapper
 
@@ -98,9 +98,16 @@ def cleanup(workspace_path):
     return fastq_files
 
 
+def set_data_path(new_data_path):
+
+    global data_path
+
+    data_path = new_data_path
+
+
 def set_experiment(new_experiment_name):
 
-    if "VIRUS_FARM_LIBRARY_PATH" not in os.environ:
+    if data_path is None and "VIRUS_FARM_LIBRARY_PATH" not in os.environ:
         raise EnvironmentError("VIRUS_FARM_LIBRARY_PATH not defined as an "
                                "environment variable.")
 
@@ -346,3 +353,4 @@ active_alignment = None
 alignment_progress_string = ""
 fastq_files = {}
 experiment_name = None
+data_path = None

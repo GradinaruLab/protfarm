@@ -234,14 +234,14 @@ def update_FASTQ_file(FASTQ_file):
         update_libraries()
 
 def get_library_object(library_id, library):
-    library_object = Library.Library(library["name"], int(library_id))
+    library_object = Library(library["name"], int(library_id))
     library_object._fastq_files = library["fastq_files"]
     if "metadata" in library:
         library_object._metadata = library["metadata"]
     return library_object
 
 def get_FASTQ_file_object(FASTQ_file_id, FASTQ_file):
-    FASTQ_file_object = FASTQ_File.FASTQ_File(FASTQ_file["name"], int(FASTQ_file_id))
+    FASTQ_file_object = FASTQ_File(FASTQ_file["name"], int(FASTQ_file_id))
     FASTQ_file_object.is_reverse_complement = FASTQ_file["reverse_complement"]
     return FASTQ_file_object
 
@@ -343,7 +343,7 @@ def get_template_object(template_id, template):
     else:
         reverse_complement_template_id = None
 
-    template_object = Template.Template(template["sequence"], id=int(template_id),\
+    template_object = Template(template["sequence"], id=int(template_id),\
         name=template["name"], reverse_complement_template_id = reverse_complement_template_id)
 
     return template_object
@@ -429,7 +429,7 @@ def get_alignment_object(alignment_id, alignment):
     statistics = \
         utils.convert_string_keys_to_ints(alignment["statistics"])
 
-    alignment_object = Alignment.Alignment(alignment["method"], \
+    alignment_object = Alignment(alignment["method"], \
         alignment["parameters"], library_templates, statistics, \
         int(alignment_id))
 

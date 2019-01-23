@@ -27,7 +27,7 @@ def get_probability_of_unseen_sequence(library):
         if count == 1:
             num_single_counts += 1
 
-    probability_of_misread_overlap = coverage.get_probability_of_single_misread_existing(library)
+    probability_of_misread_overlap = get_probability_of_single_misread_existing(library)
     print("num_expected_misreads: %.4f" % num_expected_misreads)
     print("num_single_counts: %i" % num_single_counts)
     print("probability_of_misread_overlap: %.4f" % probability_of_misread_overlap)

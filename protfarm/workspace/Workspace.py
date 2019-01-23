@@ -111,13 +111,15 @@ def set_experiment(new_experiment_name):
         raise EnvironmentError("VIRUS_FARM_LIBRARY_PATH not defined as an "
                                "environment variable.")
 
-    library_path = os.environ["VIRUS_FARM_LIBRARY_PATH"]
+    
+    if data_path is None:
+        data_path = os.environ["VIRUS_FARM_LIBRARY_PATH"]
 
     global experiment_name
 
     experiment_name = new_experiment_name
 
-    new_workspace_path = os.path.join(library_path, experiment_name)
+    new_workspace_path = os.path.join(data_path, experiment_name)
 
     set_workspace_path(new_workspace_path)
 

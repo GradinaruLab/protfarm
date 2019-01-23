@@ -26,7 +26,7 @@ class Template(object):
         variant_template = ''
 
         for sequence_element in self._sequence:
-            if sequence_element in DNA.IUPAC and \
+            if sequence_element in DNA.IUPAC_GRAMMAR_MAP and \
                 sequence_element not in DNA.get_nucleotides():
                 variant_template += sequence_element
 

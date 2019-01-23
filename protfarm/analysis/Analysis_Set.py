@@ -72,6 +72,8 @@ class Analysis_Set:
         libraries_to_compare_names, by_amino_acid = True, count_threshold = 10,
         log_scale = False, zero_count_magic_number = None):
 
+        alignment = ws.get_active_alignment()
+
         specificity_dict={}
 
         library_of_interest_total_count = 0
@@ -87,7 +89,13 @@ class Analysis_Set:
                 library_of_interest_total_count += library_of_interest.get_total_count()
                 library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
                 if zero_count_magic_number == None:
-                    library_of_interest_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_name)))
+                    library_of_interest_unseen_probabilities.append(
+                        statistics.get_probability_of_unseen_sequence(
+                            library_of_interest.get_sequence_counts(
+                                by_amino_acid=False,
+                                count_threshold=0,
+                                filter_invalid=True),
+                            alignment.statistics[library_of_interest.id]["Expected Number of Misreads"]))
 
                 for sequence, count in library_of_interest_counts.items():
                     if sequence not in sequence_counts:
@@ -551,7 +559,7 @@ class Analysis_Set:
             sequence_row = [sequence]
 
             if not by_amino_acid:
-                sequence_row.append(DNA.translate_dna_single(sequence))
+                sequence_row.append(DNA.translate_DNA_to_AA(sequence))
 
             if sum(sequence_counts.values()) < count_threshold:
                 num_sequences_filtered += 1
@@ -655,7 +663,7 @@ class Analysis_Set:
             sequence_row = [sequence]
 
             if not by_amino_acid:
-                sequence_row.append(DNA.translate_dna_single(sequence))
+                sequence_row.append(DNA.translate_DNA_to_AA(sequence))
 
             if sum(sequence_counts) < count_threshold:
                 continue

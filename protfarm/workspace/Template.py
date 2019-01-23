@@ -1,4 +1,4 @@
-from utils import DNA
+from peseq.utils import DNA
 
 class Template(object):
 

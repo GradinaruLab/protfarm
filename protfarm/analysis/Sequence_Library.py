@@ -1,11 +1,13 @@
-from utils import DNA
-from workspace import Workspace as ws
-from fileio import csv_wrapper
-import itertools
 import math
 import pandas
 import numpy
-from utils import Sequence_Trie
+
+from peseq.utils import DNA
+from peseq.fileio import csv_wrapper
+from peseq.utils import Sequence_Trie
+
+from ..workspace import Workspace as ws
+
 
 class Sequence_Library:
 

@@ -1,13 +1,9 @@
-import glob
 import os
-import json
-import importlib
 import subprocess
 from . import Database as db
 from .FASTQ_File import FASTQ_File
-import sys
 
-from fileio import csv_wrapper
+from peseq.fileio import csv_wrapper
 
 def get_fastq_file_names():
 

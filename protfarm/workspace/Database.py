@@ -1,14 +1,14 @@
 import json
 import os
-import operator
 import shutil
+
+from peseq.utils import utils
 
 from . import Library
 from . import Alignment
 from . import Template
 from . import FASTQ_File
 
-from utils import utils
 
 def load_database(new_path):
 

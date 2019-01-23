@@ -2,13 +2,15 @@ import math
 import pandas
 import numpy
 
-from analysis.Sequence_Library import Sequence_Library
-from utils import DNA
-from workspace import Workspace as ws
-from workspace import Database as db
-from . import statistics
-from . import confidence
-from . import Label_Type
+from peseq.utils import DNA
+from peseq.analysis import statistics
+from peseq.analysis import confidence
+from peseq.analysis import Label_Type
+
+from ..workspace import Workspace as ws
+from ..workspace import Database as db
+
+from . import Sequence_Library
 
 
 class Analysis_Set:

@@ -107,6 +107,8 @@ def set_data_path(new_data_path):
 
 def set_experiment(new_experiment_name):
 
+    global data_path
+
     if data_path is None and "VIRUS_FARM_LIBRARY_PATH" not in os.environ:
         raise EnvironmentError("VIRUS_FARM_LIBRARY_PATH not defined as an "
                                "environment variable.")

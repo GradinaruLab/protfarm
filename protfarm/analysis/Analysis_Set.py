@@ -3,14 +3,15 @@ import pandas
 import numpy
 
 from peseq.utils import DNA
-from peseq.analysis import statistics
 from peseq.analysis import confidence
 from peseq.analysis import Label_Type
+
+from . import coverage
 
 from ..workspace import Workspace as ws
 from ..workspace import Database as db
 
-from . import Sequence_Library
+from .Sequence_Library import Sequence_Library
 
 
 class Analysis_Set:
@@ -90,12 +91,7 @@ class Analysis_Set:
                 library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = 0)
                 if zero_count_magic_number == None:
                     library_of_interest_unseen_probabilities.append(
-                        statistics.get_probability_of_unseen_sequence(
-                            library_of_interest.get_sequence_counts(
-                                by_amino_acid=False,
-                                count_threshold=0,
-                                filter_invalid=True),
-                            alignment.statistics[library_of_interest.id]["Expected Number of Misreads"]))
+                        coverage.get_probability_of_unseen_sequence(db.get_library(library_of_interest_name)))
 
                 for sequence, count in library_of_interest_counts.items():
                     if sequence not in sequence_counts:
@@ -122,7 +118,7 @@ class Analysis_Set:
             library_of_interest_total_count = library_of_interest.get_total_count()
             sequence_counts = library_of_interest.get_sequence_counts(by_amino_acid, count_threshold = count_threshold)
             if zero_count_magic_number == None:
-                library_of_interest_unseen_probability = statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_names))
+                library_of_interest_unseen_probability = coverage.get_probability_of_unseen_sequence(db.get_library(library_of_interest_names))
             else:
                 library_of_interest_unseen_probability = zero_count_magic_number
 
@@ -137,7 +133,7 @@ class Analysis_Set:
             libraries_to_compare_total_counts.append(library_to_compare.get_total_count())
             library_to_compare = library_to_compare.get_sequence_counts(by_amino_acid, count_threshold)
             if zero_count_magic_number == None:
-                libraries_to_compare_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(library_to_compare_name)))
+                libraries_to_compare_unseen_probabilities.append(coverage.get_probability_of_unseen_sequence(db.get_library(library_to_compare_name)))
             else:
                 libraries_to_compare_unseen_probabilities.append(zero_count_magic_number)
             libraries_to_compare.append(library_to_compare)
@@ -238,7 +234,7 @@ class Analysis_Set:
                 library_of_interest_counts = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
 
                 if zero_count_magic_number_library_of_interest == None and include_zero_count_library_of_interest:
-                    library_of_interest_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_name)))
+                    library_of_interest_unseen_probabilities.append(coverage.get_probability_of_unseen_sequence(db.get_library(library_of_interest_name)))
 
                 for sequence, count in library_of_interest_counts.items():
                     if sequence not in sequence_counts:
@@ -260,7 +256,7 @@ class Analysis_Set:
 
             print("Getting probability of unseen sequence for %s" % library_of_interest_names)
             if zero_count_magic_number_library_of_interest == None and include_zero_count_library_of_interest:
-                library_of_interest_unseen_probability = statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_names))
+                library_of_interest_unseen_probability = coverage.get_probability_of_unseen_sequence(db.get_library(library_of_interest_names))
             else:
                 library_of_interest_unseen_probability = zero_count_magic_number_library_of_interest
             print("Got probability of unseen sequence for %s" % library_of_interest_names)
@@ -280,7 +276,7 @@ class Analysis_Set:
                 starting_library = starting_library.get_sequence_counts(by_amino_aci=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
 
                 if zero_count_magic_number_starting_library == None and include_zero_count_starting_library:
-                    starting_library_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(starting_library_name)))
+                    starting_library_unseen_probabilities.append(coverage.get_probability_of_unseen_sequence(db.get_library(starting_library_name)))
 
                 for sequence, sequence_count in starting_library.items():
 
@@ -301,7 +297,7 @@ class Analysis_Set:
             starting_library_total_count = starting_library.get_total_count()
 
             if zero_count_magic_number_starting_library == None and include_zero_count_starting_library:
-                starting_library_unseen_probability = statistics.get_probability_of_unseen_sequence(db.get_library(starting_library_names))
+                starting_library_unseen_probability = coverage.get_probability_of_unseen_sequence(db.get_library(starting_library_names))
             else:
                 starting_library_unseen_probability = zero_count_magic_number_starting_library
 
@@ -422,7 +418,7 @@ class Analysis_Set:
                 library_of_interest_sequence_counts = library_of_interest.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
 
                 if zero_count_magic_number_library_of_interest == None:
-                    library_of_interest_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_name)))
+                    library_of_interest_unseen_probabilities.append(coverage.get_probability_of_unseen_sequence(db.get_library(library_of_interest_name)))
 
                 for sequence, count in library_of_interest_sequence_counts.items():
                     if sequence not in libraries_of_interest_sequence_counts:
@@ -439,7 +435,7 @@ class Analysis_Set:
             library_of_interest = self.sequence_libraries[library_of_interest_names]
 
             if zero_count_magic_number_library_of_interest == None:
-                library_of_interest_unseen_probability = statistics.get_probability_of_unseen_sequence(db.get_library(library_of_interest_names))
+                library_of_interest_unseen_probability = coverage.get_probability_of_unseen_sequence(db.get_library(library_of_interest_names))
             else:
                 library_of_interest_unseen_probability = zero_count_magic_number_library_of_interest
 
@@ -455,7 +451,7 @@ class Analysis_Set:
                 starting_library_sequence_counts = starting_library.get_sequence_counts(by_amino_acid=by_amino_acid, count_threshold = 0, filter_invalid = filter_invalid)
 
                 if zero_count_magic_number_starting_library == None:
-                    starting_library_unseen_probabilities.append(statistics.get_probability_of_unseen_sequence(db.get_library(starting_library_name)))
+                    starting_library_unseen_probabilities.append(coverage.get_probability_of_unseen_sequence(db.get_library(starting_library_name)))
 
                 for sequence, count in starting_library_sequence_counts.items():
                     if sequence not in starting_libraries_sequence_counts:
@@ -471,7 +467,7 @@ class Analysis_Set:
             starting_library = self.sequence_libraries[starting_library_names]
 
             if zero_count_magic_number_starting_library == None:
-                starting_library_unseen_probability = statistics.get_probability_of_unseen_sequence(db.get_library(starting_library_names))
+                starting_library_unseen_probability = coverage.get_probability_of_unseen_sequence(db.get_library(starting_library_names))
             else:
                 starting_library_unseen_probability = zero_count_magic_number_starting_library
 
@@ -753,7 +749,7 @@ class Analysis_Set:
         for sample_name in sample_names:
             sequence_counts["%s_count" % sample_name] = \
                 sequence_counts["%s_count" % sample_name].fillna(
-                    statistics.get_probability_of_unseen_sequence(
+                    coverage.get_probability_of_unseen_sequence(
                         db.get_library(sample_name)
                     )
                 )

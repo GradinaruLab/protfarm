@@ -112,6 +112,10 @@ def get_samples():
     return get_libraries()
 
 
+def get_sample_names():
+    return [x.name for x in get_libraries()]
+
+
 def get_libraries(metadata_filter=None):
 
     if metadata_filter is None:

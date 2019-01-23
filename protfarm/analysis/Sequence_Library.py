@@ -7,12 +7,16 @@ from peseq.fileio import csv_wrapper
 from peseq.utils import Sequence_Trie
 
 from ..workspace import Workspace as ws
+from ..workspace import Database as db
 
 
 class Sequence_Library:
 
     # Loads the sequence library file associated with a library
     def __init__(self, library):
+
+        if isinstance(library,str):
+            library = db.get_library(library)
 
         alignment_file_name = ws.get_alignment_file_name(library, \
             ws.get_active_alignment())
@@ -106,7 +110,7 @@ class Sequence_Library:
 
                     if by_amino_acid:
 
-                        sequence = DNA.translate_dna_single(sequence)
+                        sequence = DNA.translate_DNA_to_AA(sequence)
 
                         if filter_invalid and sequence.find("#") != -1:
                             continue
@@ -128,7 +132,7 @@ class Sequence_Library:
 
                     if by_amino_acid:
 
-                        sequence = DNA.translate_dna_single(sequence)
+                        sequence = DNA.translate_DNA_to_AA(sequence)
 
                         if filter_invalid and sequence.find("#") != -1:
                             continue

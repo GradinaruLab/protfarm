@@ -4,7 +4,7 @@ from peseq.utils import DNA
 
 from ..workspace import Workspace as ws
 from ..workspace import Database as db
-from . import Sequence_Library
+from .Sequence_Library import Sequence_Library
 
 def get_probability_of_unseen_sequence(library):
 

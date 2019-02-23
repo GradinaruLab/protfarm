@@ -5,6 +5,7 @@ from . import Database as db
 from . import FASTQ_File
 
 from peseq.fileio import csv_wrapper
+from peseq import alignment
 
 def get_fastq_file_names():
 
@@ -243,9 +244,9 @@ def mkdir_if_not_exists(dir):
 
 def align_all(callback):
 
-    from sequencing.Perfect_Match_Aligner import Perfect_Match_Aligner
-    from sequencing.Bowtie_Aligner import Bowtie_Aligner
-    from sequencing.Aligner import Aligner
+    from peseq.alignment.Perfect_Match_Aligner import Perfect_Match_Aligner
+    from peseq.alignment.Bowtie_Aligner import Bowtie_Aligner
+    from peseq.alignment.Aligner import Aligner
 
     global alignment_progress_string
     global alignment_progress_callback

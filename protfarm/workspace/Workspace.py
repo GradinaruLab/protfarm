@@ -1,5 +1,6 @@
 import os
 import subprocess
+from . import Library
 from . import Database as db
 from . import FASTQ_File
 
@@ -124,6 +125,35 @@ def set_experiment(new_experiment_name):
     new_workspace_path = os.path.join(data_path, experiment_name)
 
     set_workspace_path(new_workspace_path)
+
+
+def seed_libraries(library_illumina_project_map):
+
+    FASTQ_file_names = get_fastq_file_names()
+    illumina_project_files = {}
+
+    library_names = library_illumina_project_map.keys()
+
+    for FASTQ_file_name in FASTQ_file_names:
+        parts = FASTQ_file_name.split("_")
+        illumina_project_name = parts[0]
+        if illumina_project_name not in illumina_project_files:
+            illumina_project_files[illumina_project_name] = []
+
+        illumina_project_files[illumina_project_name].append(FASTQ_file_name)
+
+    for library_name in library_names:
+
+        library = Library(library_name)
+
+        illumina_project_name = library_illumina_project_map[library_name]
+
+        if illumina_project_name not in illumina_project_files:
+            raise ValueError("Missing '%s' from FASTQ files"
+                             % illumina_project_name)
+
+        for FASTQ_file_name in illumina_project_files[illumina_project_name]:
+            library.add_file(FASTQ_file_name)
 
 
 def set_workspace_path(new_workspace_path):

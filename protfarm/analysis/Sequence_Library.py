@@ -160,9 +160,11 @@ class Sequence_Library:
     def collapse_sequence_counts(self, num_nucleotides_off=1):
 
         # Get file name for collapsed sequences
+        file_path_prefix_index = self._alignment_file_name.rfind(".")
+        file_path_prefix = self._alignment_file_name[0:file_path_prefix_index]
+
         collapsed_sequence_count_file_path = "%s_collapsed_%i.csv" % \
-            ("".join(self._alignment_file_name.split(".")[0:-1]),
-             num_nucleotides_off)
+            (file_path_prefix, num_nucleotides_off)
 
         if os.path.exists(collapsed_sequence_count_file_path):
             self._sequence_UUID_counts = csv_wrapper.read_csv_file(

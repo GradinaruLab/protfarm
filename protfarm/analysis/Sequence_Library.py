@@ -31,7 +31,7 @@ class Sequence_Library:
 
         if len(self._sequence_UUID_counts) > 0:
             if isinstance(self._sequence_UUID_counts[0][1], str):
-                self._has_UUIDS = True
+                self._has_UUIDs = True
             elif math.isnan(self._sequence_UUID_counts[0][1]):
                 self._has_UUIDs = False
 
@@ -171,7 +171,7 @@ class Sequence_Library:
 
         sequence_length = len(self._sequence_UUID_counts[0][0])
 
-        if self._has_UUIDS:
+        if self._has_UUIDs:
             sequence_counts = \
                 [(sequence + UID, count) for
                  sequence, UID, count in self._sequence_UUID_counts]
@@ -184,7 +184,7 @@ class Sequence_Library:
             sequence_counts, num_nucleotides_off=num_nucleotides_off
         )
 
-        if self._has_UUIDS:
+        if self._has_UUIDs:
             self._sequence_UUID_counts = \
                 [(sequence[0:sequence_length],
                   sequence[sequence_length:], count)

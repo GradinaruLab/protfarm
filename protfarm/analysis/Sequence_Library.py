@@ -1,10 +1,12 @@
 import math
 import pandas
 import numpy
+import os
 
 from peseq.utils import DNA
 from peseq.fileio import csv_wrapper
 from peseq.utils import Sequence_Trie
+from peseq.analysis import DNA as DNA_analysis
 
 from ..workspace import Workspace as ws
 from ..workspace import Database as db
@@ -18,12 +20,12 @@ class Sequence_Library:
         if isinstance(library,str):
             library = db.get_library(library)
 
-        alignment_file_name = ws.get_alignment_file_name(library, \
+        self._alignment_file_name = ws.get_alignment_file_name(library,
             ws.get_active_alignment())
 
         print("Reading CSV file for %s" % library.name)
         self._sequence_UUID_counts = csv_wrapper.read_csv_file(\
-            alignment_file_name)
+            self._alignment_file_name)
 
         self._has_UUIDs = False
 
@@ -154,6 +156,47 @@ class Sequence_Library:
             return masked_sequence_counts
         else:
             return sequence_counts
+
+    def collapse_sequence_counts(self, num_nucleotides_off=1):
+
+        # Get file name for collapsed sequences
+        collapsed_sequence_count_file_path = "%s_collapsed_%i.csv" % \
+            ("".join(self._alignment_file_name.split(".")[0:-1]),
+             num_nucleotides_off)
+
+        if os.path.exists(collapsed_sequence_count_file_path):
+            self._sequence_UUID_counts = csv_wrapper.read_csv_file(
+                collapsed_sequence_count_file_path)
+            return
+
+        sequence_length = len(self._sequence_UUID_counts[0][0])
+
+        if self._has_UUIDS:
+            sequence_counts = \
+                [(sequence + UID, count) for
+                 sequence, UID, count in self._sequence_UUID_counts]
+        else:
+            sequence_counts = \
+                [(sequence, count) for
+                 sequence, _, count in self._sequence_UUID_counts]
+
+        collapsed_sequence_counts = DNA_analysis.collapse_similar_sequences(
+            sequence_counts, num_nucleotides_off=num_nucleotides_off
+        )
+
+        if self._has_UUIDS:
+            self._sequence_UUID_counts = \
+                [(sequence[0:sequence_length],
+                  sequence[sequence_length:], count)
+                    for sequence, count in collapsed_sequence_counts]
+        else:
+            self._sequence_UUID_counts = \
+                [(sequence, "", count)
+                    for sequence, count in collapsed_sequence_counts]
+
+        ws.csv_wrapper.write_csv_file(collapsed_sequence_count_file_path,
+                                      ['Sequence', 'UUID', 'Count'],
+                                      self._sequence_UUID_counts)
 
     def eliminate_bias(self, predicted_bias_percentage=0.01, num_nucleotides_off=1, use_UIDs=False):
 

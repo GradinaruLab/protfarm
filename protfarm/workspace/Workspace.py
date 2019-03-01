@@ -5,7 +5,7 @@ from . import Database as db
 from . import FASTQ_File
 
 from peseq.fileio import csv_wrapper
-from peseq import alignment
+from peseq.utils import FASTQ_File
 
 def get_fastq_file_names():
 
@@ -24,12 +24,14 @@ def get_fastq_file_names():
 
     return fastq_files
 
+
 def write_sequence_file(library, alignment, sequence_uuid_counts):
 
     file_name = get_alignment_file_name(library, alignment)
 
     csv_wrapper.write_csv_file(file_name, ['Sequence', 'UUID', 'Count'], \
         sequence_uuid_counts)
+
 
 def get_alignment_file_name(library, alignment):
 
@@ -41,6 +43,7 @@ def get_alignment_file_name(library, alignment):
 
     return file_name
 
+
 def alignment_exists(library, alignment):
 
     alignment_file_name = get_alignment_file_name(library, alignment)
@@ -50,6 +53,7 @@ def alignment_exists(library, alignment):
         return True
 
     return False
+
 
 def remove_library_alignments(library):
 
@@ -62,6 +66,7 @@ def remove_library_alignments(library):
         os.remove(file_name)
     except OSError:
         pass
+
 
 def cleanup(workspace_path):
     """Clean up the workspace of any temporary files from an unclean shutdown"""
@@ -203,27 +208,21 @@ def set_workspace_path(new_workspace_path):
     for FASTQ_file_name in current_FASTQ_file_names:
         new_FASTQ_file = FASTQ_File(FASTQ_file_name)
 
+
 def get_raw_data_path(child_path):
     return workspace_path + "/" + raw_data_subdirectory + "/" + child_path
+
 
 def get_fastq_file(fastq_file_name):
 
     fastq_file_path = get_raw_data_path(fastq_file_name)
 
-    if os.path.isfile(fastq_file_path):
-        fastq_file = open(fastq_file_path, 'r')
-    elif os.path.isfile(fastq_file_path + '.gz'):
-        gunzip_command = 'gzip -dc ' + fastq_file_path + '.gz'
-        output_file = open(fastq_file_path, "wb")
-        subprocess.call(gunzip_command, shell=True, stdout=output_file)
-        output_file.close()
-        fastq_file = open(fastq_file_path, 'r')
-    else:
-        raise Exception("File does not exist!")
+    fastq_file = FASTQ_File(fastq_file_path)
 
     fastq_files[fastq_file_name] = fastq_file
 
     return fastq_file
+
 
 def close_fastq_file(fastq_file_name):
 
@@ -234,13 +233,16 @@ def close_fastq_file(fastq_file_name):
     if os.path.isfile(fastq_file_path + '.gz'):
         os.remove(fastq_file_path)
 
+
 def get_full_path(child_path):
     return os.path.join(workspace_path, child_path)
+
 
 def mkdir_if_not_exists(dir):
 
     if not os.path.isdir(dir):
         os.makedirs(dir)
+
 
 def align_all(callback):
 
@@ -301,6 +303,7 @@ def align_all(callback):
             aligner.align(alignment, library, \
                 update_library_alignment_progress)
 
+
 def update_library_alignment_progress(library_progress_string):
 
     progress_string = alignment_progress_string + '\n' + \
@@ -308,11 +311,13 @@ def update_library_alignment_progress(library_progress_string):
 
     alignment_progress_callback(progress_string)
 
+
 def set_active_alignment(alignment):
     global active_alignment
 
     active_alignment = alignment
     db.set_active_alignment(alignment)
+
 
 def get_active_alignment():
 
@@ -340,6 +345,7 @@ def export_csv(filename, header, data):
     filename = export_directory + "/" + filename
 
     csv_wrapper.write_csv_file(filename, header, data)
+
 
 def export_alignment_statistics():
 

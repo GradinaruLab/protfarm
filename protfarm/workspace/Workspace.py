@@ -231,16 +231,6 @@ def get_fastq_file(fastq_file_name):
     return fastq_file
 
 
-def close_fastq_file(fastq_file_name):
-
-    fastq_files[fastq_file_name].close()
-
-    fastq_file_path = get_raw_data_path(fastq_file_name)
-
-    if os.path.isfile(fastq_file_path + '.gz'):
-        os.remove(fastq_file_path)
-
-
 def get_full_path(child_path):
     return os.path.join(workspace_path, child_path)
 

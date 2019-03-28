@@ -217,6 +217,13 @@ def get_fastq_file(fastq_file_name):
 
     fastq_file_path = get_raw_data_path(fastq_file_name)
 
+    if not os.path.exists(fastq_file_path):
+        fastq_file_path = fastq_file_path + ".gz"
+
+    if not os.path.exists(fastq_file_path):
+        raise EnvironmentError("FASTQ file '%s' doesn't exist" %
+                               fastq_file_name)
+
     fastq_file = FASTQ_File(fastq_file_path)
 
     fastq_files[fastq_file_name] = fastq_file

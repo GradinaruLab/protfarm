@@ -1,11 +1,16 @@
 import os
-import subprocess
 from . import Library
 from . import Database as db
 from . import FASTQ_File
+from . import Alignment
 
-from peseq.fileio import csv_wrapper
-from peseq.utils import FASTQ_File
+from pepars.fileio import csv_wrapper
+from pepars.utils import FASTQ_File
+from pepars.utils import FASTQ_File_Set
+from pepars.alignment import Aligner
+from pepars.alignment.Perfect_Match_Aligner import Perfect_Match_Aligner
+from pepars.alignment.Bowtie_Aligner import Bowtie_Aligner
+
 
 def get_fastq_file_names():
 
@@ -243,10 +248,6 @@ def mkdir_if_not_exists(dir):
 
 def align_all(callback):
 
-    from peseq.alignment.Perfect_Match_Aligner import Perfect_Match_Aligner
-    from peseq.alignment.Bowtie_Aligner import Bowtie_Aligner
-    from peseq.alignment.Aligner import Aligner
-
     global alignment_progress_string
     global alignment_progress_callback
 
@@ -258,7 +259,7 @@ def align_all(callback):
 
     for alignment in alignments:
         if alignment.method not in [Perfect_Match_Aligner.__name__,
-            Bowtie_Aligner.__name__]:
+                Bowtie_Aligner.__name__]:
             raise Exception('Invalid alignment method, \'' + alignment.method \
                 + '\', detected.')
 
@@ -273,11 +274,19 @@ def align_all(callback):
 
     for alignment in alignments:
 
-        Aligner.validate_alignment(alignment)
+        validate_alignment(alignment)
 
         for library_id, template_id in alignment.library_templates.items():
 
             library = db.get_library_by_id(library_id)
+            template = db.get_template_by_id(template_id)
+
+            if template.reverse_complement_template_id is not None:
+                reverse_complement_template = \
+                    db.get_template_by_id(
+                        template.reverse_complement_template_id)
+            else:
+                reverse_complement_template = None
 
             if alignment_exists(library, alignment):
                 continue
@@ -297,8 +306,72 @@ def align_all(callback):
             else:
                 continue
 
-            aligner.align(alignment, library, \
-                update_library_alignment_progress)
+            read_1_FASTQ_files = []
+            FASTQ_file_pairs = []
+            FASTQ_file_sets = []
+
+            for FASTQ_file_name in library.fastq_files:
+
+                # Check to see if this is a read 1 file
+                if FASTQ_file_name.find("_R1_") != -1:
+                    read_1_FASTQ_files.append(FASTQ_file_name)
+
+            for FASTQ_file_name in library.fastq_files:
+
+                # Check to see if this is a read 2 file
+                if FASTQ_file_name.find("_R2_") != -1:
+                    read_1_FASTQ_files.append(FASTQ_file_name)
+                    read_1_equivalent_name = \
+                        FASTQ_file_name.replace("_R2_", "_R1_")
+
+                    if read_1_equivalent_name in read_1_FASTQ_files:
+                        FASTQ_file_pairs.append((read_1_equivalent_name,
+                                                 FASTQ_file_name))
+
+            if len(FASTQ_file_pairs) > 0:
+                if len(FASTQ_file_pairs) != len(read_1_FASTQ_files):
+                    raise ValueError("Must have equal numbers of read 1 and "
+                                     "read 2 files")
+
+                for FASTQ_file_pair in FASTQ_file_pairs:
+                    read_1_file_path = get_raw_data_path(FASTQ_file_pair[0])
+                    read_2_file_path = get_raw_data_path(FASTQ_file_pair[1])
+                    FASTQ_file_sets.append(FASTQ_File_Set([read_1_file_path,
+                                                           read_2_file_path]))
+            else:
+                for FASTQ_file_name in read_1_FASTQ_files:
+                    read_1_file_path = get_raw_data_path(FASTQ_file_name)
+                    FASTQ_file_sets.append(FASTQ_File_Set([read_1_file_path]))
+
+            sequence_uuid_counts_array, statistics = \
+                aligner.align(
+                    template,
+                    FASTQ_file_sets,
+                    alignment.parameters,
+                    reverse_complement_template=reverse_complement_template,
+                    progress_callback=update_library_alignment_progress)
+
+            write_sequence_file(library, alignment, sequence_uuid_counts_array)
+
+            Alignment.add_statistics(library, statistics)
+
+
+def validate_alignment(alignment):
+
+    previous_num_variants = -1
+
+    for library, template_id in alignment.library_templates.items():
+
+        template = db.get_template_by_id(template_id)
+        num_variants = Aligner.get_num_variants(template)
+
+        if previous_num_variants != -1 and \
+            num_variants != previous_num_variants:
+
+            raise Exception('Num variants does not match between all \
+                templates!')
+
+        previous_num_variants = num_variants
 
 
 def update_library_alignment_progress(library_progress_string):

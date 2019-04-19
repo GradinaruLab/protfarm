@@ -1,6 +1,6 @@
 import random
 
-from peseq.utils import DNA
+from pepars.utils import DNA
 
 from ..workspace import Workspace as ws
 from ..workspace import Database as db

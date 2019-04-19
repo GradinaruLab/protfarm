@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name="protfarm",
-    version="0.1",
+    version="0.2",
     packages=[
         "protfarm",
         "protfarm.analysis",
@@ -11,6 +11,6 @@ setup(
     install_requires=[
         "pandas",
         "numpy",
-        "peseq"
+        "pepars"
     ]
 )

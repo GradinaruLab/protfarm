@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 
-from peseq.utils import utils
+from pepars.utils import utils
 
 from . import Library
 from . import Alignment

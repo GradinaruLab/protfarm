@@ -2,9 +2,10 @@ import math
 import pandas
 import numpy
 
-from peseq.utils import DNA
-from peseq.analysis import confidence
-from peseq.analysis import Label_Type
+from pepars.utils import DNA
+from pepars.analysis import confidence
+from pepars.analysis import Label_Type
+from pepars.utils import Sequence_Trie
 
 from . import coverage
 
@@ -576,6 +577,7 @@ class Analysis_Set:
             data.append(sequence_row)
 
         ws.export_csv(filename, header_row, data)
+
 
     def export_enrichment_specificity(self, filename, starting_libary_name, \
         libraries_to_compare_names, by_amino_acid = False, \

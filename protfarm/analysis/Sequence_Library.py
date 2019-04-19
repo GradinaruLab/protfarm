@@ -3,10 +3,10 @@ import pandas
 import numpy
 import os
 
-from peseq.utils import DNA
-from peseq.fileio import csv_wrapper
-from peseq.utils import Sequence_Trie
-from peseq.analysis import DNA as DNA_analysis
+from pepars.utils import DNA
+from pepars.fileio import csv_wrapper
+from pepars.utils import Sequence_Trie
+from pepars.analysis import DNA as DNA_analysis
 
 from ..workspace import Workspace as ws
 from ..workspace import Database as db

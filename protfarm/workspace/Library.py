@@ -1,4 +1,5 @@
 import os
+from . import FASTQ_File
 
 class Library(object):
 
@@ -16,6 +17,8 @@ class Library(object):
             self._id = id
 
     def add_file(self, file_name):
+
+        file_name = FASTQ_File.clean_FASTQ_file_name(file_name)
 
         from . import Database as db
 

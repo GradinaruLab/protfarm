@@ -5,7 +5,7 @@ class FASTQ_File(object):
 
         from . import Database as db
 
-        self._name = name
+        self._name = FASTQ_File.clean_FASTQ_file_name(name)
         self._reverse_complement = False
 
         if id == None:
@@ -41,3 +41,11 @@ class FASTQ_File(object):
     @name.setter
     def name(self, new_id):
         raise Exception('Can\'t change name of a FASTQ File!')
+
+    @staticmethod
+    def clean_FASTQ_file_name(FASTQ_file_name):
+
+        if FASTQ_file_name.endswith('.gz'):
+            FASTQ_file_name = FASTQ_file_name[:-3]
+
+        return FASTQ_file_name

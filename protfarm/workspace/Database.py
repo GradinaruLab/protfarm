@@ -403,9 +403,23 @@ def add_FASTQ_file(new_FASTQ_file):
 
     new_FASTQ_file._id = next_FASTQ_file_id
 
+
 def add_alignment(new_alignment):
 
     global alignment_db
+
+    alignment = None
+
+    try:
+        alignment = get_alignment_by_parameters(
+            new_alignment.method,
+            new_alignment.parameters,
+            new_alignment.library_templates)
+    except ValueError:
+        pass
+
+    if alignment:
+        raise ValueError("Trying to create alignment that already exists!")
 
     next_alignment_id = alignment_db["next_alignment_id"]
 
@@ -424,6 +438,19 @@ def add_alignment(new_alignment):
     update_alignments()
 
     new_alignment._id = next_alignment_id
+
+
+def get_alignment_by_parameters(method, parameters, library_templates):
+
+    for alignment in get_alignments():
+
+        if alignment.method == method and \
+                alignment.parameters == parameters and \
+                alignment.library_templates == library_templates:
+            return alignment
+
+    raise ValueError('No alignment exists with name \'' + name + '\'')
+
 
 def get_alignment_object(alignment_id, alignment):
 

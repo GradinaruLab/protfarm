@@ -5,7 +5,7 @@ from . import FASTQ_File
 from . import Alignment
 
 from pepars.fileio import csv_wrapper
-from pepars.utils import FASTQ_File
+from pepars.utils import FASTQ_File as FASTQ_File_Reader
 from pepars.utils import FASTQ_File_Set
 from pepars.alignment import Aligner
 from pepars.alignment.Perfect_Match_Aligner import Perfect_Match_Aligner
@@ -229,7 +229,7 @@ def get_fastq_file(fastq_file_name):
         raise EnvironmentError("FASTQ file '%s' doesn't exist" %
                                fastq_file_name)
 
-    fastq_file = FASTQ_File(fastq_file_path)
+    fastq_file = FASTQ_File_Reader(fastq_file_path)
 
     fastq_files[fastq_file_name] = fastq_file
 
@@ -284,7 +284,7 @@ def align_all(callback):
             if template.reverse_complement_template_id is not None:
                 reverse_complement_template = \
                     db.get_template_by_id(
-                        template.reverse_complement_template_id)
+                        template.reverse_complement_template_id).sequence
             else:
                 reverse_complement_template = None
 
@@ -312,8 +312,8 @@ def align_all(callback):
 
             for FASTQ_file_name in library.fastq_files:
 
-                # Check to see if this is a read 1 file
-                if FASTQ_file_name.find("_R1_") != -1:
+                # Check to see if this is not a read 2 file
+                if FASTQ_file_name.find("_R2_") == -1:
                     read_1_FASTQ_files.append(FASTQ_file_name)
 
             for FASTQ_file_name in library.fastq_files:
@@ -345,7 +345,7 @@ def align_all(callback):
 
             sequence_uuid_counts_array, statistics = \
                 aligner.align(
-                    template,
+                    template.sequence,
                     FASTQ_file_sets,
                     alignment.parameters,
                     reverse_complement_template=reverse_complement_template,
@@ -353,7 +353,7 @@ def align_all(callback):
 
             write_sequence_file(library, alignment, sequence_uuid_counts_array)
 
-            Alignment.add_statistics(library, statistics)
+            alignment.add_statistics(library, statistics)
 
 
 def validate_alignment(alignment):

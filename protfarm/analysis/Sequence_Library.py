@@ -292,3 +292,15 @@ class Sequence_Library:
             if distance > threshold:
                 return False
         return True
+
+    def export_sequence_counts(self, filename, **kwargs):
+
+        sequence_counts = self.get_sequence_counts(**kwargs)
+        sequences_sorted = sorted(sequence_counts,
+                                  key=sequence_counts.get,
+                                  reverse=True)
+
+        sequence_counts = [(sequence, sequence_counts[sequence]) for
+                           sequence in sequences_sorted]
+
+        ws.export_csv(filename, ["Sequence", "Count"], sequence_counts)

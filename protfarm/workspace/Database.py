@@ -449,7 +449,7 @@ def get_alignment_by_parameters(method, parameters, library_templates):
                 alignment.library_templates == library_templates:
             return alignment
 
-    raise ValueError('No alignment exists with name \'' + name + '\'')
+    raise ValueError('No alignment exists with these parameters')
 
 
 def get_alignment_object(alignment_id, alignment):

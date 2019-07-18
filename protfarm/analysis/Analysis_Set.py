@@ -497,7 +497,7 @@ class Analysis_Set:
 
         return sequence_weights
 
-    def export_enrichment(self, filename, starting_libary_name, \
+    def export_enrichment(self, filename, starting_library_name, \
         by_amino_acid = False, count_threshold = 0, log_scale = False, filter_invalid = True,
         include_zero_count = True, zero_count_magic_number = 0.9):
 
@@ -519,13 +519,13 @@ class Analysis_Set:
             header_row.append(library_name)
             library_names.append(library_name)
 
-            if library_name != starting_libary_name:
+            if library_name != starting_library_name:
                 header_row.append(library_name + ' enrichment')
 
-                if isinstance(starting_libary_name, dict):
-                    fold_enrichments = self.get_enrichment(library_name, starting_libary_name[library_name], by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count, zero_count_magic_number = zero_count_magic_number, filter_invalid = filter_invalid)
+                if isinstance(starting_library_name, dict):
+                    fold_enrichments = self.get_enrichment(library_name, starting_library_name[library_name], by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count, zero_count_magic_number = zero_count_magic_number, filter_invalid = filter_invalid)
                 else:
-                    fold_enrichments = self.get_enrichment(library_name, starting_libary_name, by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count,  zero_count_magic_number = zero_count_magic_number, filter_invalid = filter_invalid)
+                    fold_enrichments = self.get_enrichment(library_name, starting_library_name, by_amino_acid, count_threshold = 0, Log_Scale = log_scale, include_zero_count = include_zero_count,  zero_count_magic_number = zero_count_magic_number, filter_invalid = filter_invalid)
             else:
                 fold_enrichments = {}
 
@@ -571,7 +571,7 @@ class Analysis_Set:
                 else:
                     sequence_row.append(sequence_counts[library_name])
 
-                if library_name != starting_libary_name:
+                if library_name != starting_library_name:
                     sequence_row.append(cumulative_enrichments[sequence][library_name])
 
             data.append(sequence_row)
@@ -579,11 +579,11 @@ class Analysis_Set:
         ws.export_csv(filename, header_row, data)
 
 
-    def export_enrichment_specificity(self, filename, starting_libary_name, \
+    def export_enrichment_specificity(self, filename, starting_library_name, \
         libraries_to_compare_names, by_amino_acid = False, \
         count_threshold = 0, log_scale = True, include_zero_count = True, zero_count_magic_number = None):
 
-        if not starting_libary_name:
+        if not starting_library_name:
             calculate_enrichment = False
         else:
             calculate_enrichment = True
@@ -609,7 +609,7 @@ class Analysis_Set:
 
             print("Getting enrichment for %s" % library_name)
 
-            if library_name == starting_libary_name:
+            if library_name == starting_library_name:
                 library_count_threshold = count_threshold
             else:
                 library_count_threshold = 0
@@ -618,7 +618,7 @@ class Analysis_Set:
             if calculate_enrichment:
                 header_row.append(library_name + ' enrichment')
                 fold_enrichments = self.get_enrichment(library_name,
-                                                       starting_libary_name,
+                                                       starting_library_name,
                                                        by_amino_acid=by_amino_acid,
                                                        count_threshold=library_count_threshold,
                                                        Log_Scale=log_scale,

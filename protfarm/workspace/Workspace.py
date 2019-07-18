@@ -320,7 +320,6 @@ def align_all(callback):
 
                 # Check to see if this is a read 2 file
                 if FASTQ_file_name.find("_R2_") != -1:
-                    read_1_FASTQ_files.append(FASTQ_file_name)
                     read_1_equivalent_name = \
                         FASTQ_file_name.replace("_R2_", "_R1_")
 

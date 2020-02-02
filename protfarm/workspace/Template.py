@@ -12,7 +12,7 @@ class Template(object):
         if name == None:
             self._name = sequence
         else:
-            self._name = name
+            self._name = str(name)
 
         if id == 0:
             db.add_template(self)

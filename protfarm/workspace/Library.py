@@ -8,7 +8,7 @@ class Library(object):
         from . import Database as db
 
         self._fastq_files = []
-        self._name = name
+        self._name = str(name)
         self._metadata = {}
 
         if id == 0:
